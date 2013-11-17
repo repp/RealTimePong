@@ -1,27 +1,16 @@
-var WebSocketServer = require('ws').Server
-    , http = require('http')
-    , express = require('express')
-    , app = express()
-    , port = process.env.PORT || 5000;
+var app = require('express')()
+    , server = require('http').createServer(app)
+    , io = require('socket.io').listen(server);
 
-app.use(express.static(__dirname + '/'));
+server.listen(5000);
 
-var server = http.createServer(app);
-server.listen(port);
+app.get('/', function (req, res) {
+    res.sendfile(__dirname + '/index.html');
+});
 
-console.log('http server listening on %d', port);
-
-var wss = new WebSocketServer({server: server});
-console.log('websocket server created');
-wss.on('connection', function(ws) {
-    var id = setInterval(function() {
-        ws.send(JSON.stringify(new Date()), function() {  });
-    }, 10);
-
-    console.log('websocket connection open');
-
-    ws.on('close', function() {
-        console.log('websocket connection close');
-        clearInterval(id);
+io.sockets.on('connection', function (socket) {
+    socket.emit('news', { hello: 'world' });
+    socket.on('my other event', function (data) {
+        console.log(data);
     });
 });

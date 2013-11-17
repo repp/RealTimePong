@@ -17,12 +17,13 @@
         }
     </style>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        var host = location.origin.replace(/^http/, 'ws')
-        var ws = new WebSocket(host);
-        ws.onmessage = function (event) {
-            document.querySelector('#pings').innerHTML = JSON.parse(event.data)
-        };
+        var socket = io.connect('http://localhost');
+        socket.on('news', function (data) {
+            console.log(data);
+            socket.emit('my other event', { my: 'data' });
+        });
     </script>
 </head>
 <body>
