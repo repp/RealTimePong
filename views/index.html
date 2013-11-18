@@ -1,0 +1,35 @@
+<html>
+<head>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <script type="text/javascript" src="/vendor_js/modernizr-2.6.2.min.js"></script>
+    <script type="text/javascript" src="/vendor_js/jquery-1.10.2.min.js"></script>
+</head>
+<body>
+
+<div id="container">
+    <header>
+        <h1>Real Time Pong</h1>
+        <div class="connections">Users Online: <span id="connection-count">0</span></div>
+    </header>
+    <div id="game">
+        <form id="login">
+            <input placeholder="Enter your name" type="text" name="name" id="name" value="" />
+            <input type="submit" value="Play" />
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+    var $connectionCount = $('span#connection-count');
+    var socket = io.connect(window.location.hostname);
+    socket.on('connection_count', function (data) {
+        $connectionCount.html(data.count)
+    });
+</script>
+
+</body>
+</html>
