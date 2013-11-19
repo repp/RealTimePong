@@ -15,6 +15,8 @@ app.get('/', function (req, res) {
 });
 
 var connections = 0;
+var waitingPlayers = [];
+var games = [];
 
 io.sockets.on('connection', function (socket) {
     connections++;
@@ -29,10 +31,37 @@ io.sockets.on('connection', function (socket) {
         });
     });
 
-//    socket.emit('news', { hello: 'world' });
-//    socket.on('my other event', function (data) {
-//        console.log(data);
-//    });
+    console.log('hit4');
+    socket.on('find_game', function(data) {
+        console.log('hit1');
+        var player = {socket: socket, name: data.name};
+        if(waitingPlayers.length > 0) {
+            var newOpponent = waitingPlayers.pop();
+            createGame(player, newOpponent);
+            console.log('CREATE GAME');
+        } else {
+            waitingPlayers.push(player);
+            console.log('LIST UP');
+            console.log(waitingPlayers);
+        }
+    });
+
+
+    function createGame(player1, player2) {
+        var game = {
+            player1: player1,
+            player2: player2
+        };
+        games.push(game);
+
+        player1.socket.emit('game_found', {
+            opponent: {name: player2.name}
+        });
+
+        player2.socket.emit('game_found', {
+            opponent: {name: player1.name}
+        });
+    }
 
 });
 

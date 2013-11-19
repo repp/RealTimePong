@@ -18,6 +18,7 @@
             <input placeholder="Enter your name" type="text" name="name" id="name" value="" />
             <input type="submit" value="Play" />
         </form>
+        <div id="looking-for-opponent" style="display: none;">Looking for opponent...</div>
     </div>
 </div>
 
@@ -25,10 +26,38 @@
 
 <script>
     var $connectionCount = $('span#connection-count');
+    var $playForm = $('form#login');
+    var $action = $('#looking-for-opponent');
+
+    var opponentName;
+
     var socket = io.connect(window.location.hostname);
     socket.on('connection_count', function (data) {
         $connectionCount.html(data.count)
     });
+
+    $playForm.submit(setupGame);
+
+    function setupGame(e) {
+        e.preventDefault();
+        showFindGameAnimation();
+        var name = $('#name').val();
+
+        socket.on('game_found', function(data) {
+            $action.html('Opponent\'s Name: ' + data.opponent.name);
+        });
+
+        socket.emit('find_game', {
+            name: name
+        });
+        return false;
+    }
+
+    function showFindGameAnimation() {
+        $playForm.hide();
+        $action.show();
+    }
+
 </script>
 
 </body>
