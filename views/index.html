@@ -3,6 +3,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
     <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <script type="text/javascript" src="/vendor_js/modernizr-2.6.2.min.js"></script>
     <script type="text/javascript" src="/vendor_js/jquery-1.10.2.min.js"></script>
 </head>
@@ -16,9 +17,10 @@
     <div id="game">
         <form id="login">
             <input placeholder="Enter your name" type="text" name="name" id="name" value="" />
-            <input type="submit" value="Play" />
+            <br />
+            <input type="submit" value="Find an Opponent" />
         </form>
-        <div id="looking-for-opponent" style="display: none;">Looking for opponent...</div>
+        <div id="network-message" style="display: none;">Looking for opponent...</div>
     </div>
 </div>
 
@@ -27,7 +29,7 @@
 <script>
     var $connectionCount = $('span#connection-count');
     var $playForm = $('form#login');
-    var $action = $('#looking-for-opponent');
+    var $action = $('#network-message');
 
     var opponentName;
 
@@ -40,9 +42,20 @@
 
     function setupGame(e) {
         e.preventDefault();
-        showFindGameAnimation();
-        var name = $('#name').val();
+        var $nameInput = $('#name');
+        var name = $nameInput.val();
+        if(name.length !== 0) {
+            showFindGameAnimation();
+            findAnOpponent();
+        } else {
+            alert('Please enter your name.');
+            $nameInput.focus();
+        }
 
+        return false;
+    }
+
+    function findAnOpponent() {
         socket.on('game_found', function(data) {
             $action.html('Opponent\'s Name: ' + data.opponent.name);
         });
@@ -50,7 +63,6 @@
         socket.emit('find_game', {
             name: name
         });
-        return false;
     }
 
     function showFindGameAnimation() {
