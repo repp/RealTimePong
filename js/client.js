@@ -1,6 +1,10 @@
 var socket,
     playerName,
     opponentName,
+    stage,
+    ball,
+    playerPaddle,
+    opponentPaddle,
     $playerName,
     $opponentName,
     $connectionCount,
@@ -71,5 +75,31 @@ function findAnOpponent() {
 }
 
 function setupGame() {
+    stage = new createjs.Stage("pong");
 
+    //Ball
+    ball = new createjs.Shape();
+    ball.graphics.beginFill("black").drawCircle(0, 0, 6);
+    ball.y = 260;
+    ball.x = 397;
+    stage.addChild(ball);
+
+    //Player Paddle
+    playerPaddle = new createjs.Shape();
+    playerPaddle.graphics.beginFill("black").drawRect(0, 0, 10, 100);
+    playerPaddle.y = 225;
+    playerPaddle.x = 760;
+    stage.addChild(playerPaddle);
+
+    //Opponent Paddle
+    opponentPaddle = new createjs.Shape();
+    opponentPaddle.graphics.beginFill("black").drawRect(0, 0, 10, 100);
+    opponentPaddle.y = 225;
+    opponentPaddle.x = 30;
+    stage.addChild(opponentPaddle);
+
+    stage.update();
+    $action.hide();
+
+    //socket.emit('game_setup');
 }
