@@ -43,24 +43,46 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('find_game', function(data) {
-        console.log("FIND GAME");
-        console.log(waitingPlayers);
-        var player = {socket: socket, name: data.name};
+        var player = {socket: socket,
+                      name: data.name,
+                      pos: 0
+        };
         if(waitingPlayers.length > 0) {
             var newOpponent = waitingPlayers.shift(); // Optimize later
             createGame(player, newOpponent);
             console.log('got new opponent');
         } else {
             waitingPlayers.push(player);
-            console.log('added to waiting players');
         }
     });
 
+    socket.on('game_setup', function() {
+       if(socket.currentGame.setup) {
+            serveBall(socket.currentGame);
+       } else {
+           socket.currentGame.setup = true;
+       }
+    });
 
     function createGame(player1, player2) {
         var game = {
             player1: player1,
             player2: player2,
+            setup: false,
+            ball: {
+                x: 0,
+                y: 0,
+                speedX: 0,
+                speedY: 0
+            },
+            updateData: function () {
+              return {
+                  ball_x: this.ball.x,
+                  ball_y: this.ball.y,
+                  player1_pos: this.player1.pos,
+                  player2_pos: this.player2.pos
+              };
+            },
             destroy: function() {
                 this.player1.socket.emit('opponent_left');
                 this.player2.socket.emit('opponent_left');
@@ -78,17 +100,25 @@ io.sockets.on('connection', function (socket) {
         player2.socket.emit('game_found', {
             opponent: {name: player1.name}
         });
-        return game;
     }
 
     function removeFromWaitingPlayers(socketToRemove) {
         for(var i = 0; i < waitingPlayers.length; i++) {
             if(waitingPlayers[i].socket === socketToRemove) {
                 waitingPlayers.splice(i, 1);
-                console.log('REMOVED: ' + i);
-                console.log(waitingPlayers);
             }
         }
+    }
+
+    function serveBall(game) {
+        game.ball.y = 260;
+        game.ball.x = 397;
+        game.ball.speedX = 6;
+        game.ball.speedY = 2;
+        game.player1.pos = 225;
+        game.player2.pos = 225;
+        game.player1.socket.emit('update_positions', game.updateData());
+        game.player2.socket.emit('update_positions', game.updateData());
     }
 
 
