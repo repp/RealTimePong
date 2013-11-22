@@ -47,7 +47,10 @@ io.sockets.on('connection', function (socket) {
         var player = {
               socket: socket,
               name: data.name,
-              pos: 0
+              pos: 0,
+              speed: 2,
+              keyDown: false,
+              direction: null
         };
         if(waitingPlayers.length > 0) {
             var newOpponent = waitingPlayers.shift(); // Optimize later
@@ -103,6 +106,17 @@ io.sockets.on('connection', function (socket) {
                     this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-this.ball.diameter)
                 }
 
+                //Move Player Paddles
+                if(player1.keyDown) {
+                    player1.speed = player1.direction === 'up' ? -10 : 10;
+                    player1.pos += player1.speed;
+                }
+
+                if(player2.keyDown) {
+                    player2.speed = player2.direction === 'up' ? -10 : 10;
+                    player2.pos += player2.speed;
+                }
+
                 //Broadcast game state
                 this.update();
             },
@@ -130,20 +144,22 @@ io.sockets.on('connection', function (socket) {
         player1.socket.player = player1;
         player2.socket.player = player2;
 
-        player1.socket.on('move_paddle', function(data) {
-            if(data.direction === 'up') {
-                player1.pos -= 6;
-            } else if(data.direction === 'down') {
-                player1.pos += 6;
-            }
+        player1.socket.on('key_down', function(data) {
+            player1.keyDown = true;
+            player1.direction = data.direction;
         });
 
-        player2.socket.on('move_paddle', function(data) {
-            if(data.direction === 'up') {
-                player2.pos -= 6;
-            } else if(data.direction === 'down') {
-                player2.pos += 6;
-            }
+        player2.socket.on('key_down', function(data) {
+            player1.keyDown = true;
+            player1.direction = data.direction;
+        });
+
+        player1.socket.on('key_up', function(data) {
+            player1.keyDown = false;
+        });
+
+        player2.socket.on('key_down', function(data) {
+            player1.keyDown = false;
         });
 
         player1.socket.emit('game_found', {
@@ -164,7 +180,6 @@ io.sockets.on('connection', function (socket) {
             }
         }
     }
-
 
 });
 

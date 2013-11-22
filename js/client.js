@@ -99,7 +99,8 @@ function setupGame() {
     stage.update();
     $action.hide();
 
-    this.document.onkeydown = movePaddle;
+    this.document.onkeydown = keyDown;
+    this.document.onkeyup = keyUp;
 
     socket.on('update_positions', function(data) {
         if(isFirstPlayer) {
@@ -119,10 +120,18 @@ function setupGame() {
     socket.emit('game_setup');
 }
 
-function movePaddle(e) {
+function keyDown(e) {
     if(e.keyCode === 87 || e.keyCode === 38) {
-        socket.emit('move_paddle', {direction: 'up'});
+        socket.emit('key_down', {direction: 'up'});
     } else if(e.keyCode === 83 || e.keyCode === 40) {
-        socket.emit('move_paddle', {direction: 'down'});
+        socket.emit('key_down', {direction: 'down'});
+    }
+}
+
+function keyUp(e) {
+    if(e.keyCode === 87 || e.keyCode === 38) {
+        socket.emit('key_up', {direction: 'up'});
+    } else if(e.keyCode === 83 || e.keyCode === 40) {
+        socket.emit('key_up', {direction: 'down'});
     }
 }
