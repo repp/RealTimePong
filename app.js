@@ -58,7 +58,7 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('game_setup', function() {
        if(socket.currentGame.setup) {
-            serveBall(socket.currentGame);
+            socket.currentGame.serveBall();
        } else {
            socket.currentGame.setup = true;
        }
@@ -69,11 +69,37 @@ io.sockets.on('connection', function (socket) {
             player1: player1,
             player2: player2,
             setup: false,
+            interval: null,
             ball: {
                 x: 0,
                 y: 0,
                 speedX: 0,
                 speedY: 0
+            },
+            serveBall: function() {
+                this.ball.y = 260;
+                this.ball.x = 397;
+                this.ball.speedX = 6;
+                this.ball.speedY = 2;
+                this.player1.pos = 225;
+                this.player2.pos = 225;
+                var g = this;
+                this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
+            },
+            onEnterFrame: function() {
+                this.ball.x += this.ball.speedX;
+                this.ball.y += this.ball.speedY;
+                if(this.ball.x > 800 || this.ball.x < 0) {
+                    this.ball.speedX = -this.ball.speedX;
+                }
+                if(this.ball.y > 525 || this.ball.y < 0) {
+                    this.ball.speedY = -this.ball.speedY;
+                }
+                this.update();
+            },
+            update: function() {
+                this.player1.socket.emit('update_positions', this.updateData());
+                this.player2.socket.emit('update_positions', this.updateData());
             },
             updateData: function () {
               return {
@@ -108,17 +134,6 @@ io.sockets.on('connection', function (socket) {
                 waitingPlayers.splice(i, 1);
             }
         }
-    }
-
-    function serveBall(game) {
-        game.ball.y = 260;
-        game.ball.x = 397;
-        game.ball.speedX = 6;
-        game.ball.speedY = 2;
-        game.player1.pos = 225;
-        game.player2.pos = 225;
-        game.player1.socket.emit('update_positions', game.updateData());
-        game.player2.socket.emit('update_positions', game.updateData());
     }
 
 
