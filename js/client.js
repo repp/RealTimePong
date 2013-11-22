@@ -1,4 +1,5 @@
 var socket,
+    isFirstPlayer,
     playerName,
     opponentName,
     stage,
@@ -60,6 +61,7 @@ function findAnOpponent() {
         opponentName = data.opponent.name;
         $opponentName.html(opponentName);
         $action.html('Opponent found. Setting up game...');
+        isFirstPlayer = data.isFirstPlayer;
         setupGame();
     });
 
@@ -100,10 +102,17 @@ function setupGame() {
     this.document.onkeydown = movePaddle;
 
     socket.on('update_positions', function(data) {
-        ball.x = data.ball_x;
-        ball.y = data.ball_y;
-        playerPaddle.y = data.player1_pos;
-        opponentPaddle.y = data.player1_pos;
+        if(isFirstPlayer) {
+            ball.x = data.ball_x;
+            ball.y = data.ball_y;
+            playerPaddle.y = data.player1_pos;
+            opponentPaddle.y = data.player2_pos;
+        } else {
+            ball.x = 800 - data.ball_x;
+            ball.y = data.ball_y;
+            playerPaddle.y = data.player2_pos;
+            opponentPaddle.y = data.player1_pos;
+        }
         stage.update();
     });
 

@@ -24,6 +24,7 @@ var waitingPlayers = [];
 io.sockets.on('connection', function (socket) {
 
     socket.currentGame = null;
+    socket.player = null;
 
     connections++;
     io.sockets.emit('connection_count', {
@@ -43,14 +44,14 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('find_game', function(data) {
-        var player = {socket: socket,
-                      name: data.name,
-                      pos: 0
+        var player = {
+              socket: socket,
+              name: data.name,
+              pos: 0
         };
         if(waitingPlayers.length > 0) {
             var newOpponent = waitingPlayers.shift(); // Optimize later
             createGame(player, newOpponent);
-            console.log('got new opponent');
         } else {
             waitingPlayers.push(player);
         }
@@ -62,14 +63,6 @@ io.sockets.on('connection', function (socket) {
        } else {
            socket.currentGame.setup = true;
        }
-    });
-
-    socket.on('move_paddle', function(data) {
-        if(data.direction === 'up') {
-            socket.currentGame.player1.pos -= 6;
-        } else if(data.direction === 'down') {
-            socket.currentGame.player1.pos += 6;
-        }
     });
 
     function createGame(player1, player2) {
@@ -91,7 +84,7 @@ io.sockets.on('connection', function (socket) {
                 this.ball.speedX = 6;
                 this.ball.speedY = 2;
                 this.player1.pos = 225;
-                this.player2.pos = 225;
+                this.player2.pos = 425;
                 var g = this;
                 this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
             },
@@ -134,13 +127,33 @@ io.sockets.on('connection', function (socket) {
         };
         player1.socket.currentGame = game;
         player2.socket.currentGame = game;
+        player1.socket.player = player1;
+        player2.socket.player = player2;
+
+        player1.socket.on('move_paddle', function(data) {
+            if(data.direction === 'up') {
+                player1.pos -= 6;
+            } else if(data.direction === 'down') {
+                player1.pos += 6;
+            }
+        });
+
+        player2.socket.on('move_paddle', function(data) {
+            if(data.direction === 'up') {
+                player2.pos -= 6;
+            } else if(data.direction === 'down') {
+                player2.pos += 6;
+            }
+        });
 
         player1.socket.emit('game_found', {
-            opponent: {name: player2.name}
+            opponent: {name: player2.name},
+            isFirstPlayer: true
         });
 
         player2.socket.emit('game_found', {
-            opponent: {name: player1.name}
+            opponent: {name: player1.name},
+            isFirstPlayer: false
         });
     }
 
