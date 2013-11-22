@@ -64,6 +64,14 @@ io.sockets.on('connection', function (socket) {
        }
     });
 
+    socket.on('move_paddle', function(data) {
+        if(data.direction === 'up') {
+            socket.currentGame.player1.pos -= 6;
+        } else if(data.direction === 'down') {
+            socket.currentGame.player1.pos += 6;
+        }
+    });
+
     function createGame(player1, player2) {
         var game = {
             player1: player1,
@@ -74,7 +82,8 @@ io.sockets.on('connection', function (socket) {
                 x: 0,
                 y: 0,
                 speedX: 0,
-                speedY: 0
+                speedY: 0,
+                diameter: 6
             },
             serveBall: function() {
                 this.ball.y = 260;
@@ -87,14 +96,21 @@ io.sockets.on('connection', function (socket) {
                 this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
             },
             onEnterFrame: function() {
+                //Move Ball
                 this.ball.x += this.ball.speedX;
                 this.ball.y += this.ball.speedY;
-                if(this.ball.x > 800 || this.ball.x < 0) {
+
+                //Handle Edges
+                if(this.ball.x+this.ball.diameter > 800 || this.ball.x-this.ball.diameter < 0) {
                     this.ball.speedX = -this.ball.speedX;
+                    this.ball.x = Math.min(Math.max(this.ball.x, 0), 800-this.ball.diameter)
                 }
-                if(this.ball.y > 525 || this.ball.y < 0) {
+                if(this.ball.y+this.ball.diameter > 525 || this.ball.y-this.ball.diameter < 0) {
                     this.ball.speedY = -this.ball.speedY;
+                    this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-this.ball.diameter)
                 }
+
+                //Broadcast game state
                 this.update();
             },
             update: function() {
