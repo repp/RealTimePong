@@ -108,12 +108,20 @@ io.sockets.on('connection', function (socket) {
 
                 //Move Player Paddles
                 if(player1.keyDown) {
-                    player1.speed = player1.direction === 'up' ? -10 : 10;
+                    if(player1.direction === 'up') {
+                        player1.speed = Math.max(Math.min(player1.speed*1.1, -7), -17);
+                    } else if(player1.direction === 'down') {
+                        player1.speed = Math.min(Math.max(player1.speed*1.1, 7), 17);
+                    }
                     player1.pos += player1.speed;
                 }
 
                 if(player2.keyDown) {
-                    player2.speed = player2.direction === 'up' ? -10 : 10;
+                    if(player2.direction === 'up') {
+                        player2.speed = Math.max(Math.min(player2.speed*1.1, -7), -17);
+                    } else if(player2.direction === 'down') {
+                        player2.speed = Math.min(Math.max(player2.speed*1.1, 7), 17);
+                    }
                     player2.pos += player2.speed;
                 }
 
@@ -150,16 +158,18 @@ io.sockets.on('connection', function (socket) {
         });
 
         player2.socket.on('key_down', function(data) {
-            player1.keyDown = true;
-            player1.direction = data.direction;
+            player2.keyDown = true;
+            player2.direction = data.direction;
         });
 
-        player1.socket.on('key_up', function(data) {
+        player1.socket.on('key_up', function() {
+            player1.speed = 0;
             player1.keyDown = false;
         });
 
-        player2.socket.on('key_down', function(data) {
-            player1.keyDown = false;
+        player2.socket.on('key_up', function() {
+            player2.speed = 0;
+            player2.keyDown = false;
         });
 
         player1.socket.emit('game_found', {

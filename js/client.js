@@ -14,9 +14,9 @@ var socket,
     $action;
 
 $(document).ready(function() {
-    $connectionCount = $('span#connection-count'),
-    $playForm = $('form#login'),
-    $findNewOpponent = $('#find-new-opponent'),
+    $connectionCount = $('span#connection-count');
+    $playForm = $('form#login');
+    $findNewOpponent = $('#find-new-opponent');
     $action = $('#network-message');
 
     $playerName  = $('#player-name');
@@ -116,7 +116,6 @@ function setupGame() {
         }
         stage.update();
     });
-
     socket.emit('game_setup');
 }
 
