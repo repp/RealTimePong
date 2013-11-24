@@ -29,7 +29,7 @@ io.sockets.on('connection', function (socket) {
     var leftPaddleX = 30;
     var ballDiameter = 6;
     var paddleFrictionCoeff = 0.25;
-    var winningScore = 5;
+    var winningScore = 2;
 
     socket.currentGame = null;
     socket.player = null;
@@ -88,6 +88,7 @@ io.sockets.on('connection', function (socket) {
             setup: false,
             interval: null,
             serveTimeout: null,
+            playAgain: false,
             ball: {
                 x: 0,
                 y: 0,
@@ -97,6 +98,9 @@ io.sockets.on('connection', function (socket) {
             serveBall: function() {
                 if(this.interval !== null) {
                     clearInterval(this.interval);
+                }
+                if(this.serveTimeout !== null) {
+                    clearTimeout(this.serveTimeout);
                 }
                 this.ball.y = 260;
                 this.ball.x = 397;
@@ -203,8 +207,13 @@ io.sockets.on('connection', function (socket) {
               };
             },
             gameOver: function() {
-                this.player1.socket.emit('game_over', { won: (this.p1Score === 5) });
-                this.player2.socket.emit('game_over', { won: (this.p2Score === 5) });
+                clearInterval(this.interval);
+                clearTimeout(this.serveTimeout);
+                this.playAgain = false;
+                this.player1.socket.on('play_again', this.playAgainRequest);
+                this.player2.socket.on('play_again', this.playAgainRequest);
+                this.player1.socket.emit('game_over', { won: (this.p1Score === winningScore) });
+                this.player2.socket.emit('game_over', { won: (this.p2Score === winningScore) });
             },
             destroy: function() {
                 clearInterval(this.interval);
@@ -215,6 +224,33 @@ io.sockets.on('connection', function (socket) {
                 this.player2.socket.currentGame = null;
                 this.player1.socket.player = null;
                 this.player2.socket.player = null;
+            },
+            playAgainRequest: function() {
+                if(this.currentGame.playAgain) {
+                    this.currentGame.resetGame();
+                } else {
+                    this.currentGame.playAgain = true;
+                }
+            },
+            resetGame: function() {
+                this.p1Score = 0;
+                this.p2Score = 0;
+                this.player1.paddle.direction = null;
+                this.player2.paddle.direction = null;
+                this.player1.paddle.keyDown = false;
+                this.player2.paddle.keyDown = false;
+                this.setup = false;
+                this.interval = null;
+                this.serveTimeout = null;
+                this.playAgain = false;
+
+
+                this.player1.socket.emit('replay');
+                this.player2.socket.emit('replay');
+                var g = this;
+                this.player1.socket.removeListener('play_again', g.playAgainRequest);
+                this.player2.socket.removeListener('play_again', g.playAgainRequest);
+                this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
             }
         };
         player1.socket.currentGame = game;

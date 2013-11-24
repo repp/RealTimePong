@@ -13,12 +13,14 @@ var socket,
     $connectionCount,
     $playForm,
     $findNewOpponent,
+    $playAgain,
     $action;
 
 $(document).ready(function() {
     $connectionCount = $('span#connection-count');
     $playForm = $('form#login');
     $findNewOpponent = $('#find-new-opponent');
+    $playAgain = $('#play-again');
     $action = $('#network-message');
 
     $playerName  = $('#player-name');
@@ -28,6 +30,7 @@ $(document).ready(function() {
 
     $playForm.submit(findGame);
     $findNewOpponent.click(findGame);
+    $playAgain.click(playAgain);
     openConnection();
 });
 
@@ -89,6 +92,7 @@ function onOpponentLeft() {
 }
 
 function setupGame() {
+    console.log('SETUP GAME!');
     stage = new createjs.Stage("pong");
 
     //Ball
@@ -111,28 +115,12 @@ function setupGame() {
     stage.update();
     $action.hide();
 
-    this.document.addEventListener('keydown', keyDown);
-    this.document.addEventListener('keyup', keyUp);
+    document.addEventListener('keydown', keyDown);
+    document.addEventListener('keyup', keyUp);
 
     socket.on('update_positions', updatePositions);
     socket.on('game_over', onGameOver);
     socket.emit('game_setup');
-}
-
-function destroyGame() {
-    if(stage !== null) {
-        $action.show();
-        stage.removeAllChildren();
-        stage.update();
-        opponentPaddle = null;
-        playerPaddle = null;
-        ball = null;
-        stage = null;
-    }
-    this.document.removeEventListener('keydown', keyDown);
-    this.document.removeEventListener('keyup', keyUp);
-    socket.removeListener('update_positions', updatePositions);
-    socket.removeListener('game_over', onGameOver);
 }
 
 function updatePositions(data) {
@@ -170,6 +158,22 @@ function keyUp(e) {
     }
 }
 
+function destroyGame() {
+    if(stage !== null) {
+        $action.show();
+        stage.removeAllChildren();
+        stage.update();
+        opponentPaddle = null;
+        playerPaddle = null;
+        ball = null;
+        stage = null;
+    }
+    this.document.removeEventListener('keydown', keyDown);
+    this.document.removeEventListener('keyup', keyUp);
+    socket.removeListener('update_positions', updatePositions);
+    socket.removeListener('game_over', onGameOver);
+}
+
 function onGameOver(data) {
     if(data.won) {
         $action.html('You won!');
@@ -177,5 +181,14 @@ function onGameOver(data) {
         $action.html(opponentName + ' won.');
     }
     $findNewOpponent.show();
+    $playAgain.show();
     destroyGame();
+}
+
+function playAgain() {
+    socket.on('replay', setupGame);
+    $findNewOpponent.hide();
+    $playAgain.hide();
+    $action.html('Waiting for ' + opponentName + '...');
+    socket.emit('play_again');
 }

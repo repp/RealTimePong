@@ -33,7 +33,7 @@ div div#game form#login input {
     margin: 3px;
 }
 
-button#find-new-opponent {
+button#find-new-opponent, button#play-again {
     display: block;
     margin: 3px auto;
 }
