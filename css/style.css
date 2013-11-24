@@ -43,6 +43,11 @@ div#player-names {
     font-size: 16px;
 }
 
+div#side {
+    display: inline-block;
+    width: 50%;
+}
+
 span#opponent-name {
     float: left;
 }
