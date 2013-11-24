@@ -8,6 +8,8 @@ var socket,
     opponentPaddle,
     $playerName,
     $opponentName,
+    $playerScore,
+    $opponentScore,
     $connectionCount,
     $playForm,
     $findNewOpponent,
@@ -21,6 +23,8 @@ $(document).ready(function() {
 
     $playerName  = $('#player-name');
     $opponentName = $('#opponent-name');
+    $playerScore = $('#player-score');
+    $opponentScore = $('#opponent-score');
 
     $playForm.submit(findGame);
     $findNewOpponent.click(findGame);
@@ -108,11 +112,15 @@ function setupGame() {
             ball.y = data.ball_y;
             playerPaddle.y = data.player1_pos;
             opponentPaddle.y = data.player2_pos;
+            $opponentScore.html(data.player2_score);
+            $playerScore.html(data.player1_score);
         } else {
             ball.x = 800 - data.ball_x;
             ball.y = data.ball_y;
             playerPaddle.y = data.player2_pos;
             opponentPaddle.y = data.player1_pos;
+            $playerScore.html(data.player2_score);
+            $opponentScore.html(data.player1_score);
         }
         stage.update();
     });

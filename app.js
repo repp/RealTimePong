@@ -81,6 +81,8 @@ io.sockets.on('connection', function (socket) {
         var game = {
             player1: player1,
             player2: player2,
+            p1Score: 0,
+            p2Score: 0,
             setup: false,
             interval: null,
             ball: {
@@ -90,6 +92,9 @@ io.sockets.on('connection', function (socket) {
                 speedY: 0
             },
             serveBall: function() {
+                if(this.interval !== null) {
+                    clearInterval(this.interval);
+                }
                 this.ball.y = 260;
                 this.ball.x = 397;
                 this.ball.speedX = 12;
@@ -104,11 +109,7 @@ io.sockets.on('connection', function (socket) {
                 this.ball.x += this.ball.speedX;
                 this.ball.y += this.ball.speedY;
 
-                //Handle Edges
-                if(this.ball.x+ballDiameter > 800 || this.ball.x-ballDiameter < 0) {
-                    this.ball.speedX = -this.ball.speedX;
-                    this.ball.x = Math.min(Math.max(this.ball.x, 0), 800-ballDiameter)
-                }
+                //Handle Top/Bottom Edges
                 if(this.ball.y+ballDiameter > 525 || this.ball.y-ballDiameter < 0) {
                     this.ball.speedY = -this.ball.speedY;
                     this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-ballDiameter)
@@ -153,6 +154,24 @@ io.sockets.on('connection', function (socket) {
                     this.ball.x = leftPaddleX+paddleWidth;
                 }
 
+                //Scoring
+                if(this.ball.x+ballDiameter > 800) {
+                    this.ball.x = 800-ballDiameter;
+                    this.ball.speedX = 0;
+                    this.ball.speedY = 0;
+                    this.p2Score++;
+                    var g = this;
+                    setTimeout(function() {g.serveBall();}, 2000);
+                }
+                if (this.ball.x < 0) {
+                    this.ball.x = 0+ballDiameter;
+                    this.ball.speedX = 0;
+                    this.ball.speedY = 0;
+                    this.p1Score++;
+                    var g = this;
+                    setTimeout(function() {g.serveBall();}, 2000);
+                }
+
                 //Broadcast game state
                 this.update();
             },
@@ -165,7 +184,9 @@ io.sockets.on('connection', function (socket) {
                   ball_x: this.ball.x,
                   ball_y: this.ball.y,
                   player1_pos: this.player1.paddle.pos,
-                  player2_pos: this.player2.paddle.pos
+                  player2_pos: this.player2.paddle.pos,
+                  player1_score: this.p1Score,
+                  player2_score: this.p2Score
               };
             },
             destroy: function() {
