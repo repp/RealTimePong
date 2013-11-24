@@ -61,23 +61,31 @@ function showFindOpponentAnimation() {
 }
 
 function findAnOpponent() {
-    socket.on('game_found', function(data) {
-        opponentName = data.opponent.name;
-        $opponentName.html(opponentName);
-        $action.html('Opponent found. Setting up game...');
-        isFirstPlayer = data.isFirstPlayer;
-        setupGame();
-    });
+    socket.on('game_found', onGameFound);
+    socket.on('opponent_left', onOpponentLeft);
 
     socket.emit('find_game', {
         name: playerName
     });
+}
 
-    socket.on('opponent_left', function(data) {
-        $opponentName.html('');
-        $action.html('Your opponent has left the game.');
-        $findNewOpponent.show();
-    });
+function onGameFound(data) {
+    opponentName = data.opponent.name;
+    $opponentName.html(opponentName);
+    $action.html('Opponent found. Setting up game...');
+    isFirstPlayer = data.isFirstPlayer;
+    setupGame();
+    socket.removeListener('game_found', onGameFound);
+}
+
+function onOpponentLeft() {
+    $opponentName.html('');
+    $opponentScore.html('');
+    $playerScore.html('');
+    $action.html(opponentName + ' has left the game.');
+    $findNewOpponent.show();
+    destroyGame();
+    socket.removeListener('opponent_left', onOpponentLeft);
 }
 
 function setupGame() {
@@ -103,28 +111,45 @@ function setupGame() {
     stage.update();
     $action.hide();
 
-    this.document.onkeydown = keyDown;
-    this.document.onkeyup = keyUp;
+    this.document.addEventListener('keydown', keyDown);
+    this.document.addEventListener('keyup', keyUp);
 
-    socket.on('update_positions', function(data) {
-        if(isFirstPlayer) {
-            ball.x = data.ball_x;
-            ball.y = data.ball_y;
-            playerPaddle.y = data.player1_pos;
-            opponentPaddle.y = data.player2_pos;
-            $opponentScore.html(data.player2_score);
-            $playerScore.html(data.player1_score);
-        } else {
-            ball.x = 800 - data.ball_x;
-            ball.y = data.ball_y;
-            playerPaddle.y = data.player2_pos;
-            opponentPaddle.y = data.player1_pos;
-            $playerScore.html(data.player2_score);
-            $opponentScore.html(data.player1_score);
-        }
-        stage.update();
-    });
+    socket.on('update_positions', updatePositions);
     socket.emit('game_setup');
+}
+
+function destroyGame() {
+    if(stage !== null) {
+        $action.show();
+        stage.removeAllChildren();
+        stage.update();
+        opponentPaddle = null;
+        playerPaddle = null;
+        ball = null;
+        stage = null;
+    }
+    this.document.removeEventListener('keydown', keyDown);
+    this.document.removeEventListener('keyup', keyUp);
+    socket.removeListener('update_positions', updatePositions);
+}
+
+function updatePositions(data) {
+    if(isFirstPlayer) {
+        ball.x = data.ball_x;
+        ball.y = data.ball_y;
+        playerPaddle.y = data.player1_pos;
+        opponentPaddle.y = data.player2_pos;
+        $opponentScore.html(data.player2_score);
+        $playerScore.html(data.player1_score);
+    } else {
+        ball.x = 800 - data.ball_x;
+        ball.y = data.ball_y;
+        playerPaddle.y = data.player2_pos;
+        opponentPaddle.y = data.player1_pos;
+        $playerScore.html(data.player2_score);
+        $opponentScore.html(data.player1_score);
+    }
+    stage.update();
 }
 
 function keyDown(e) {

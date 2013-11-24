@@ -85,6 +85,7 @@ io.sockets.on('connection', function (socket) {
             p2Score: 0,
             setup: false,
             interval: null,
+            serveTimeout: null,
             ball: {
                 x: 0,
                 y: 0,
@@ -161,7 +162,7 @@ io.sockets.on('connection', function (socket) {
                     this.ball.speedY = 0;
                     this.p2Score++;
                     var g = this;
-                    setTimeout(function() {g.serveBall();}, 2000);
+                    this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
                 }
                 if (this.ball.x < 0) {
                     this.ball.x = 0+ballDiameter;
@@ -169,7 +170,7 @@ io.sockets.on('connection', function (socket) {
                     this.ball.speedY = 0;
                     this.p1Score++;
                     var g = this;
-                    setTimeout(function() {g.serveBall();}, 2000);
+                    this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
                 }
 
                 //Broadcast game state
@@ -190,10 +191,14 @@ io.sockets.on('connection', function (socket) {
               };
             },
             destroy: function() {
+                clearInterval(this.interval);
+                clearTimeout(this.serveTimeout);
                 this.player1.socket.emit('opponent_left');
                 this.player2.socket.emit('opponent_left');
                 this.player1.socket.currentGame = null;
                 this.player2.socket.currentGame = null;
+                this.player1.socket.player = null;
+                this.player2.socket.player = null;
             }
         };
         player1.socket.currentGame = game;
