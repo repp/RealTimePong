@@ -28,7 +28,7 @@ $(document).ready(function() {
 });
 
 function openConnection() {
-    socket = io.connect(window.location.hostname),
+    socket = io.connect(window.location.hostname);
     socket.on('connection_count', function (data) {
         $connectionCount.html(data.count)
     });

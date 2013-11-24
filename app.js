@@ -23,6 +23,13 @@ var waitingPlayers = [];
 
 io.sockets.on('connection', function (socket) {
 
+    var paddleHeight = 100;
+    var paddleWidth = 10;
+    var rightPaddleX = 760;
+    var leftPaddleX = 30;
+    var ballDiameter = 6;
+    var paddleFrictionCoeff = 0.25;
+
     socket.currentGame = null;
     socket.player = null;
 
@@ -47,10 +54,12 @@ io.sockets.on('connection', function (socket) {
         var player = {
               socket: socket,
               name: data.name,
-              pos: 0,
-              speed: 2,
-              keyDown: false,
-              direction: null
+              paddle: {
+                  pos: 0,
+                  speed: 0,
+                  direction: null,
+                  keyDown: false
+              }
         };
         if(waitingPlayers.length > 0) {
             var newOpponent = waitingPlayers.shift(); // Optimize later
@@ -78,16 +87,15 @@ io.sockets.on('connection', function (socket) {
                 x: 0,
                 y: 0,
                 speedX: 0,
-                speedY: 0,
-                diameter: 6
+                speedY: 0
             },
             serveBall: function() {
                 this.ball.y = 260;
                 this.ball.x = 397;
-                this.ball.speedX = 6;
+                this.ball.speedX = 12;
                 this.ball.speedY = 2;
-                this.player1.pos = 225;
-                this.player2.pos = 425;
+                this.player1.paddle.pos = 225;
+                this.player2.paddle.pos = 225;
                 var g = this;
                 this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
             },
@@ -97,32 +105,52 @@ io.sockets.on('connection', function (socket) {
                 this.ball.y += this.ball.speedY;
 
                 //Handle Edges
-                if(this.ball.x+this.ball.diameter > 800 || this.ball.x-this.ball.diameter < 0) {
+                if(this.ball.x+ballDiameter > 800 || this.ball.x-ballDiameter < 0) {
                     this.ball.speedX = -this.ball.speedX;
-                    this.ball.x = Math.min(Math.max(this.ball.x, 0), 800-this.ball.diameter)
+                    this.ball.x = Math.min(Math.max(this.ball.x, 0), 800-ballDiameter)
                 }
-                if(this.ball.y+this.ball.diameter > 525 || this.ball.y-this.ball.diameter < 0) {
+                if(this.ball.y+ballDiameter > 525 || this.ball.y-ballDiameter < 0) {
                     this.ball.speedY = -this.ball.speedY;
-                    this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-this.ball.diameter)
+                    this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-ballDiameter)
                 }
 
                 //Move Player Paddles
-                if(player1.keyDown) {
-                    if(player1.direction === 'up') {
-                        player1.speed = Math.max(Math.min(player1.speed*1.1, -7), -17);
-                    } else if(player1.direction === 'down') {
-                        player1.speed = Math.min(Math.max(player1.speed*1.1, 7), 17);
+                if(player1.paddle.keyDown) {
+                    if(player1.paddle.direction === 'up') {
+                        player1.paddle.speed = Math.max(Math.min(player1.paddle.speed*1.1, -7), -17);
+                    } else if(player1.paddle.direction === 'down') {
+                        player1.paddle.speed = Math.min(Math.max(player1.paddle.speed*1.1, 7), 17);
                     }
-                    player1.pos += player1.speed;
+                } else {
+                    player1.paddle.speed = player1.paddle.speed * 0.68;
+                    if(Math.abs(player1.paddle.speed) < 0.5) player1.paddle.speed = 0;
                 }
 
-                if(player2.keyDown) {
-                    if(player2.direction === 'up') {
-                        player2.speed = Math.max(Math.min(player2.speed*1.1, -7), -17);
-                    } else if(player2.direction === 'down') {
-                        player2.speed = Math.min(Math.max(player2.speed*1.1, 7), 17);
+                if(player2.paddle.keyDown) {
+                    if(player2.paddle.direction === 'up') {
+                        player2.paddle.speed = Math.max(Math.min(player2.paddle.speed*1.1, -7), -17);
+                    } else if(player2.paddle.direction === 'down') {
+                        player2.paddle.speed = Math.min(Math.max(player2.paddle.speed*1.1, 7), 17);
                     }
-                    player2.pos += player2.speed;
+                } else {
+                    player2.paddle.speed = player2.paddle.speed * 0.68;
+                    if(Math.abs(player2.paddle.speed) < 0.5) player2.paddle.speed = 0;
+                }
+
+                player1.paddle.pos = Math.max(Math.min(player1.paddle.pos + player1.paddle.speed, 425), 0);
+                player2.paddle.pos = Math.max(Math.min(player2.paddle.pos + player2.paddle.speed, 425), 0);
+
+                //Check for collisions with paddles
+                if(this.ball.x+ballDiameter > rightPaddleX && this.ball.x < rightPaddleX+paddleWidth && this.ball.y+ballDiameter > player1.paddle.pos && this.ball.y < player1.paddle.pos+paddleHeight) {
+                    this.ball.speedX = -this.ball.speedX;
+                    this.ball.speedY -= player1.paddle.speed * paddleFrictionCoeff;
+                    this.ball.x = rightPaddleX-ballDiameter;
+                }
+
+                if(this.ball.x < leftPaddleX+paddleWidth && this.ball.x+ballDiameter > leftPaddleX && this.ball.y+ballDiameter > player2.paddle.pos && this.ball.y < player2.paddle.pos+paddleHeight ) {
+                    this.ball.speedX = -this.ball.speedX;
+                    this.ball.speedY -= player2.paddle.speed * paddleFrictionCoeff;
+                    this.ball.x = leftPaddleX+paddleWidth;
                 }
 
                 //Broadcast game state
@@ -136,8 +164,8 @@ io.sockets.on('connection', function (socket) {
               return {
                   ball_x: this.ball.x,
                   ball_y: this.ball.y,
-                  player1_pos: this.player1.pos,
-                  player2_pos: this.player2.pos
+                  player1_pos: this.player1.paddle.pos,
+                  player2_pos: this.player2.paddle.pos
               };
             },
             destroy: function() {
@@ -153,23 +181,21 @@ io.sockets.on('connection', function (socket) {
         player2.socket.player = player2;
 
         player1.socket.on('key_down', function(data) {
-            player1.keyDown = true;
-            player1.direction = data.direction;
+            player1.paddle.keyDown = true;
+            player1.paddle.direction = data.direction;
         });
 
         player2.socket.on('key_down', function(data) {
-            player2.keyDown = true;
-            player2.direction = data.direction;
+            player2.paddle.keyDown = true;
+            player2.paddle.direction = data.direction;
         });
 
         player1.socket.on('key_up', function() {
-            player1.speed = 0;
-            player1.keyDown = false;
+            player1.paddle.keyDown = false;
         });
 
         player2.socket.on('key_up', function() {
-            player2.speed = 0;
-            player2.keyDown = false;
+            player2.paddle.keyDown = false;
         });
 
         player1.socket.emit('game_found', {
