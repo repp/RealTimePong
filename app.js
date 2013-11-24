@@ -29,9 +29,11 @@ io.sockets.on('connection', function (socket) {
     var leftPaddleX = 30;
     var ballDiameter = 6;
     var paddleFrictionCoeff = 0.25;
+    var winningScore = 5;
 
     socket.currentGame = null;
     socket.player = null;
+    socket.winStreak = 0;
 
     connections++;
     io.sockets.emit('connection_count', {
@@ -161,16 +163,26 @@ io.sockets.on('connection', function (socket) {
                     this.ball.speedX = 0;
                     this.ball.speedY = 0;
                     this.p2Score++;
-                    var g = this;
-                    this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                    if(this.p2Score === winningScore) {
+                        this.player2.socket.winStreak++;
+                        this.gameOver();
+                    } else {
+                        var g = this;
+                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                    }
                 }
                 if (this.ball.x < 0) {
                     this.ball.x = 0+ballDiameter;
                     this.ball.speedX = 0;
                     this.ball.speedY = 0;
                     this.p1Score++;
-                    var g = this;
-                    this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                    if(this.p1Score === winningScore) {
+                        this.player1.socket.winStreak++;
+                        this.gameOver();
+                    } else {
+                        var g = this;
+                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                    }
                 }
 
                 //Broadcast game state
@@ -189,6 +201,10 @@ io.sockets.on('connection', function (socket) {
                   player1_score: this.p1Score,
                   player2_score: this.p2Score
               };
+            },
+            gameOver: function() {
+                this.player1.socket.emit('game_over', { won: (this.p1Score === 5) });
+                this.player2.socket.emit('game_over', { won: (this.p2Score === 5) });
             },
             destroy: function() {
                 clearInterval(this.interval);

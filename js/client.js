@@ -115,6 +115,7 @@ function setupGame() {
     this.document.addEventListener('keyup', keyUp);
 
     socket.on('update_positions', updatePositions);
+    socket.on('game_over', onGameOver);
     socket.emit('game_setup');
 }
 
@@ -131,6 +132,7 @@ function destroyGame() {
     this.document.removeEventListener('keydown', keyDown);
     this.document.removeEventListener('keyup', keyUp);
     socket.removeListener('update_positions', updatePositions);
+    socket.removeListener('game_over', onGameOver);
 }
 
 function updatePositions(data) {
@@ -166,4 +168,14 @@ function keyUp(e) {
     } else if(e.keyCode === 83 || e.keyCode === 40) {
         socket.emit('key_up', {direction: 'down'});
     }
+}
+
+function onGameOver(data) {
+    if(data.won) {
+        $action.html('You won!');
+    } else {
+        $action.html(opponentName + ' won.');
+    }
+    $findNewOpponent.show();
+    destroyGame();
 }
