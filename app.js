@@ -250,9 +250,6 @@ io.sockets.on('connection', function (socket) {
                 this.player1.paddle.keyDown = false;
                 this.player2.paddle.keyDown = false;
                 this.setup = false;
-                this.interval = null;
-                this.serveTimeout = null;
-
 
                 this.player1.socket.emit('replay', {
                     paddleHeight: paddleHeight,
