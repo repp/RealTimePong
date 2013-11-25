@@ -45,10 +45,11 @@ function findGame(e) {
     e.preventDefault();
     var $nameInput = $('#name');
     playerName = $nameInput.val();
+    opponentName = null;
     if(playerName.length !== 0) {
         $playerName.html(playerName);
-        showFindOpponentAnimation();
         findAnOpponent();
+        showFindOpponentAnimation();
     } else {
         alert('Please enter your name.');
         $nameInput.focus();
@@ -59,13 +60,13 @@ function findGame(e) {
 function showFindOpponentAnimation() {
     $playForm.hide();
     $findNewOpponent.hide();
+    $playAgain.hide();
     $action.html('Looking for opponent...');
     $action.show();
 }
 
 function findAnOpponent() {
     socket.on('game_found', onGameFound);
-    socket.on('opponent_left', onOpponentLeft);
 
     socket.emit('find_game', {
         name: playerName
@@ -76,23 +77,30 @@ function onGameFound(data) {
     opponentName = data.opponent.name;
     $opponentName.html(opponentName);
     $action.html('Opponent found. Setting up game...');
+    socket.on('opponent_left', onOpponentLeft);
     isFirstPlayer = data.isFirstPlayer;
     setupGame();
     socket.removeListener('game_found', onGameFound);
 }
 
 function onOpponentLeft() {
-    $opponentName.html('');
-    $opponentScore.html('');
-    $playerScore.html('');
-    $action.html(opponentName + ' has left the game.');
-    $findNewOpponent.show();
-    destroyGame();
+    if(opponentName !== null) {
+        $opponentName.html('');
+        $opponentScore.html('');
+        $playerScore.html('');
+        $action.append('<br />' +opponentName + ' has left the game.');
+        $playAgain.hide();
+        opponentName = null;
+        $findNewOpponent.show();
+        destroyGame();
+    }
     socket.removeListener('opponent_left', onOpponentLeft);
 }
 
 function setupGame() {
-    console.log('SETUP GAME!');
+    try {
+        socket.removeListener('replay', setupGame);
+    } catch(e) {}
     stage = new createjs.Stage("pong");
 
     //Ball
@@ -171,10 +179,10 @@ function destroyGame() {
     this.document.removeEventListener('keydown', keyDown);
     this.document.removeEventListener('keyup', keyUp);
     socket.removeListener('update_positions', updatePositions);
-    socket.removeListener('game_over', onGameOver);
 }
 
 function onGameOver(data) {
+    socket.removeListener('game_over', onGameOver);
     if(data.won) {
         $action.html('You won!');
     } else {

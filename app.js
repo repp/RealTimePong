@@ -53,6 +53,9 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('find_game', function(data) {
+        if(socket.currentGame !== null) {
+            socket.currentGame.destroy();
+        }
         var player = {
               socket: socket,
               name: data.name,
@@ -88,7 +91,8 @@ io.sockets.on('connection', function (socket) {
             setup: false,
             interval: null,
             serveTimeout: null,
-            playAgain: false,
+            p1PlayAgain: false,
+            p2PlayerAgain: false,
             ball: {
                 x: 0,
                 y: 0,
@@ -209,7 +213,8 @@ io.sockets.on('connection', function (socket) {
             gameOver: function() {
                 clearInterval(this.interval);
                 clearTimeout(this.serveTimeout);
-                this.playAgain = false;
+                this.p1PlayAgain = false;
+                this.p2PlayAgain = false;
                 this.player1.socket.on('play_again', this.playAgainRequest);
                 this.player2.socket.on('play_again', this.playAgainRequest);
                 this.player1.socket.emit('game_over', { won: (this.p1Score === winningScore) });
@@ -226,10 +231,15 @@ io.sockets.on('connection', function (socket) {
                 this.player2.socket.player = null;
             },
             playAgainRequest: function() {
-                if(this.currentGame.playAgain) {
+                if(this.player === this.currentGame.player1){
+                    this.currentGame.p1PlayAgain = true;
+                }
+                if(this.player === this.currentGame.player2){
+                    this.currentGame.p2PlayAgain = true;
+                }
+
+                if(this.currentGame.p1PlayAgain && this.currentGame.p2PlayAgain) {
                     this.currentGame.resetGame();
-                } else {
-                    this.currentGame.playAgain = true;
                 }
             },
             resetGame: function() {
