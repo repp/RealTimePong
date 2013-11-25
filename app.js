@@ -270,7 +270,8 @@ io.sockets.on('connection', function (socket) {
                 this.player2.socket.removeListener('play_again', g.playAgainRequest);
                 this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
             }
-        };
+        }; // end of game
+
         player1.socket.currentGame = game;
         player2.socket.currentGame = game;
         player1.socket.player = player1;
