@@ -100,12 +100,12 @@ io.sockets.on('connection', function (socket) {
                 speedY: 0
             },
             serveBall: function() {
-                if(this.interval !== null) {
+                try {
                     clearInterval(this.interval);
-                }
-                if(this.serveTimeout !== null) {
+                } catch(e) {}
+                try {
                     clearTimeout(this.serveTimeout);
-                }
+                } catch(e) {}
                 this.ball.y = 260;
                 this.ball.x = 397;
                 this.ball.speedX = 12;
@@ -252,11 +252,22 @@ io.sockets.on('connection', function (socket) {
                 this.setup = false;
                 this.interval = null;
                 this.serveTimeout = null;
-                this.playAgain = false;
 
 
-                this.player1.socket.emit('replay');
-                this.player2.socket.emit('replay');
+                this.player1.socket.emit('replay', {
+                    paddleHeight: paddleHeight,
+                    paddleWidth: paddleWidth,
+                    rightPaddleX: rightPaddleX,
+                    leftPaddleX: leftPaddleX,
+                    ballDiameter: ballDiameter
+                });
+                this.player2.socket.emit('replay', {
+                    paddleHeight: paddleHeight,
+                    paddleWidth: paddleWidth,
+                    rightPaddleX: rightPaddleX,
+                    leftPaddleX: leftPaddleX,
+                    ballDiameter: ballDiameter
+                });
                 var g = this;
                 this.player1.socket.removeListener('play_again', g.playAgainRequest);
                 this.player2.socket.removeListener('play_again', g.playAgainRequest);
@@ -288,12 +299,26 @@ io.sockets.on('connection', function (socket) {
 
         player1.socket.emit('game_found', {
             opponent: {name: player2.name},
-            isFirstPlayer: true
+            isFirstPlayer: true,
+            gameSpec: {
+                paddleHeight: paddleHeight,
+                paddleWidth: paddleWidth,
+                rightPaddleX: rightPaddleX,
+                leftPaddleX: leftPaddleX,
+                ballDiameter: ballDiameter
+            }
         });
 
         player2.socket.emit('game_found', {
             opponent: {name: player1.name},
-            isFirstPlayer: false
+            isFirstPlayer: false,
+            gameSpec: {
+                paddleHeight: paddleHeight,
+                paddleWidth: paddleWidth,
+                rightPaddleX: rightPaddleX,
+                leftPaddleX: leftPaddleX,
+                ballDiameter: ballDiameter
+            }
         });
     }
 
