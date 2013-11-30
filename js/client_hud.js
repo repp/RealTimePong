@@ -8,8 +8,10 @@ var ClientHUD = function() {
         $connectionCount,
         $playForm,
         $findNewOpponent,
+        $findOpponentAnim,
         $playAgain,
-        $action;
+        $action,
+        $game;
 
     function findDOMElements() {
         $connectionCount = $('span#connection-count');
@@ -18,10 +20,13 @@ var ClientHUD = function() {
         $playAgain = $('#play-again');
         $action = $('#network-message');
 
+        $game = $('#game');
         $playerName  = $('#player-name');
         $opponentName = $('#opponent-name');
         $playerScore = $('#player-score');
         $opponentScore = $('#opponent-score');
+        $findOpponentAnim = $('#loading-animation');
+        $findOpponentAnim.hide();
     }
 
     function addButtonListeners(onFindGame, onPlayAgain) {
@@ -35,11 +40,15 @@ var ClientHUD = function() {
     }
 
     function showFindOpponentAnimation() {
+        clearScoreboard();
         $playForm.hide();
         $findNewOpponent.hide();
         $playAgain.hide();
-        $action.html('Looking for opponent...');
+        $action.html('Looking for an opponent.');
+        $findOpponentAnim.show();
         $action.show();
+        $game.addClass('active');
+        $('.score-light').fadeIn();
     }
 
     function setPlayerName() {
@@ -65,6 +74,7 @@ var ClientHUD = function() {
     }
 
     function onOpponentLeft() {
+        clearScoreboard();
         $opponentName.html('');
         $opponentScore.html('');
         $playerScore.html('');
@@ -79,11 +89,18 @@ var ClientHUD = function() {
 
     function hideMessages() {
         $action.hide();
+        $findOpponentAnim.hide();
     }
 
     function updateScore(playerScore, opponentScore) {
-        $playerScore.html(playerScore);
-        $opponentScore.html(opponentScore);
+        var i, j;
+        for(i = 0; i <= playerScore; i++) {
+            $('#player-score .'+i).addClass('active');
+        }
+
+        for(j = 0; j <= opponentScore; j++) {
+            $('#opponent-score .'+j).addClass('active');
+        }
     }
 
     function showGameOver(winner) {
@@ -97,9 +114,14 @@ var ClientHUD = function() {
     }
 
     function onPlayAgain() {
+        clearScoreboard();
         $findNewOpponent.hide();
         $playAgain.hide();
         $action.html('Waiting for ' + opponentName + '...');
+    }
+
+    function clearScoreboard() {
+        $('.score-light').removeClass('active');
     }
 
     return {

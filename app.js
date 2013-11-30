@@ -8,6 +8,8 @@ var app = require('express')()
 server.listen(port);
 
 app.use("/css", express.static(__dirname + '/css'));
+app.use("/images", express.static(__dirname + '/images'));
+app.use("/css/fonts", express.static(__dirname + '/css/fonts'));
 app.use("/js", express.static(__dirname + '/js'));
 app.use("/js/vendor_js", express.static(__dirname + '/js/vendor_js'));
 app.use("/views", express.static(__dirname + '/views'));
@@ -29,7 +31,7 @@ io.sockets.on('connection', function (socket) {
     var leftPaddleX = 30;
     var ballDiameter = 6;
     var paddleFrictionCoeff = 0.25;
-    var winningScore = 2;
+    var winningScore = 5;
 
     socket.currentGame = null;
     socket.player = null;
@@ -76,7 +78,8 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('game_setup', function() {
        if(socket.currentGame.setup) {
-            socket.currentGame.serveBall();
+           var sckt = socket;
+           setTimeout(function() {sckt.currentGame.serveBall();}, 2000);
        } else {
            socket.currentGame.setup = true;
        }
@@ -172,11 +175,13 @@ io.sockets.on('connection', function (socket) {
                     this.ball.speedY = 0;
                     this.p2Score++;
                     if(this.p2Score === winningScore) {
+                        this.update();
                         this.player2.socket.winStreak++;
                         this.gameOver();
+                        return;
                     } else {
                         var g = this;
-                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1500);
                     }
                 }
                 if (this.ball.x < 0) {
@@ -185,11 +190,13 @@ io.sockets.on('connection', function (socket) {
                     this.ball.speedY = 0;
                     this.p1Score++;
                     if(this.p1Score === winningScore) {
+                        this.update();
                         this.player1.socket.winStreak++;
                         this.gameOver();
+                        return;
                     } else {
                         var g = this;
-                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
+                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1500);
                     }
                 }
 

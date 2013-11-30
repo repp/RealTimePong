@@ -11,7 +11,7 @@ var pongClient = (function() {
         socket.on('connection_count', hud.updateConnectionCount);
     }
 
-    function findGame(e) {
+    function login(e) {
         e.preventDefault();
         opponentPresent = false;
         if(hud.setPlayerName()) {
@@ -64,11 +64,11 @@ var pongClient = (function() {
 
     function updatePositions(data) {
         if(isFirstPlayer) {
-            game.updateFirstPlayer(data);
             hud.updateScore(data.player1_score, data.player2_score);
+            game.updateFirstPlayer(data);
         } else {
-            game.updateSecondPlayer(data);
             hud.updateScore(data.player2_score, data.player1_score);
+            game.updateSecondPlayer(data);
         }
     }
 
@@ -111,7 +111,7 @@ var pongClient = (function() {
     return {
         init: function() {
             hud.init();
-            hud.addButtonListeners(findGame, playAgain);
+            hud.addButtonListeners(login, playAgain);
             openConnection();
         }
     };

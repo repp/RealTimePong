@@ -1,4 +1,30 @@
+@font-face {
+    font-family: 'arista_2.0_lightregular';
+    src: url('fonts/arista2.0_light-webfont.eot');
+    src: url('fonts/arista2.0_light-webfont.eot?#iefix') format('embedded-opentype'),
+    url('fonts/arista2.0_light-webfont.woff') format('woff'),
+    url('fonts/arista2.0_light-webfont.ttf') format('truetype'),
+    url('fonts/arista2.0_light-webfont.svg#arista_2.0_lightregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'champagne__limousinesregular';
+    src: url('fonts/champagne__limousines-webfont.eot');
+    src: url('fonts/champagne__limousines-webfont.eot?#iefix') format('embedded-opentype'),
+    url('fonts/champagne__limousines-webfont.woff') format('woff'),
+    url('fonts/champagne__limousines-webfont.ttf') format('truetype'),
+    url('fonts/champagne__limousines-webfont.svg#champagne__limousinesregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
 html, body {
+    font-size: 18px;
+    letter-spacing: 1px;
+    font-family: 'champagne__limousinesregular';
     color: #FFF;
     background: #060f3c; /* Old browsers */
     /* IE9 SVG, needs conditional override of 'filter' to 'none' */
@@ -12,6 +38,45 @@ html, body {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#060f3c', endColorstr='#3a1a49',GradientType=0 ); /* IE6-8 */
 }
 
+input[type='text'] {
+    font-size: 22px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px dotted #e43053;
+    color: #FFF;
+    padding: 4px;
+    font-family: 'champagne__limousinesregular';
+    outline: none;
+    min-width: 200px;
+    transition: all 333ms;
+    letter-spacing: 1px;
+}
+
+input[type='text']:focus {
+    border-bottom: 1px solid #e43053;
+}
+
+input[type='submit'], button {
+    display: inline-block;
+    margin: 8px;
+    background: transparent;
+    border: 1px solid #73e7fd;
+    letter-spacing: 1px;
+    font-size: 16px;
+    border-radius: 50px;
+    padding: 4px 25px;
+    color: #73e7fd;
+    font-family: 'champagne__limousinesregular';
+    transition: all 300ms;
+}
+
+input[type='submit']:hover, input[type='submit']:active, button:hover, button:active  {
+    box-shadow:  0 0 4px #73e7fd,
+                 inset 0 0 3px #73e7fd;
+    text-shadow:  0 0 12px #73e7fd;
+    transition: all 300ms;
+}
+
 div#container {
     width: 800px;
     margin: 20px auto;
@@ -23,15 +88,45 @@ header {
 }
 
 header h1 {
+    display: inline-block;
+    font-family: 'arista_2.0_lightregular';
     margin-bottom: 0;
-    margin-top: 5px;
+    margin-top: -4px;
+    font-weight: normal;
+    font-size: 52px;
+}
+
+header div.streak {
+    margin-top: 12px;
+}
+
+header div.connections, header div.streak {
+    font-size: 15px;
+    clear: right;
+    float: right;
+    color: #e5e5e5;
+    font-weight: bold;
+    letter-spacing: 0;
+}
+header div.connections span, header div.streak span {
+    font-weight: normal;
 }
 
 div#game {
     width: 800px;
     height: 525px;
-    background-color: rgba(20, 20, 20, 0.15);
-    border: 1px solid rgba(20, 20, 20, 0.2);
+    border: 2px solid #62afc3;
+    border-radius: 5px;
+    background: #0d1344;
+    box-shadow: inset 0 0 200px rgba(0,0,0,0.4);
+    transition: all 1s;
+}
+
+div#game.active {
+    border: 2px solid #89edfd;
+    box-shadow: inset 0 0 200px rgba(0,0,0,0.4),
+    0 0 8px #73e7fd,
+    inset 0 0 6px #73e7fd;
 }
 
 div#game form#login, div#game div#network-message {
@@ -40,13 +135,31 @@ div#game form#login, div#game div#network-message {
     margin-right: 200px;
     text-align: center;
     padding-top: 200px;
-}
-
-div div#game form#login input {
-    margin: 3px;
+    font-size: 22px;
 }
 
 button#find-new-opponent, button#play-again {
+    display: block;
+    margin: 8px auto;
+    width: 220px;
+}
+
+button#play-again {
+    margin-top: 30px;
+}
+
+button#find-new-opponent {
+    border: 1px solid #e43053;
+    color: #e43053;
+}
+
+button#find-new-opponent:hover {
+    box-shadow:  0 0 4px #e43053,
+    inset 0 0 3px #e43053;
+    text-shadow:  0 0 12px #e43053;
+}
+
+img#loading-animation {
     display: block;
     margin: 3px auto;
 }
@@ -56,18 +169,43 @@ div#player-names {
     font-size: 16px;
 }
 
-span#opponent-name {
-    float: left;
+div.side {
+    width: 48%;
+    padding: 0;
+    margin: 0;
 }
 
-span#opponent-score {
+div#opponent-name {
     float: left;
+    padding: 3%;
 }
 
-span#player-name {
+div#opponent-score {
+    margin-top: 2%;
     float: right;
 }
 
-span#player-score {
+div#player-name {
     float: right;
+    padding: 3%;
+}
+
+div#player-score {
+    margin-top: 2%;
+    float: left;
+}
+
+div.score-light {
+    display: none;
+    float: left;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border-radius: 12px;
+    border: 2px solid #444;
+    margin: 3px;
+    transition: all 500ms;
+}
+div.score-light.active {
+    border: 2px solid #e43053;
 }
