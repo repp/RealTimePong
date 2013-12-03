@@ -3,9 +3,21 @@ var app = require('express')()
     , server = require('http').createServer(app)
     , io = require('socket.io').listen(server)
     , express = require('express')
-    , port = process.env.PORT || 5000;
-
-server.listen(port);
+    , port = process.env.PORT || 5000
+    , connections = 0
+    , waitingPlayers = []
+    , gameSpec = {
+        fieldWidth: 800,
+        fieldHeight: 525,
+        paddleHeight: 100,
+        paddleWidth: 10,
+        rightPaddleX: 760,
+        leftPaddleX: 30,
+        ballDiameter: 6,
+        paddleFrictionCoeff: 0.25,
+        winningScore: 5,
+        framesPerSecond: 32
+    };
 
 app.use("/css", express.static(__dirname + '/css'));
 app.use("/images", express.static(__dirname + '/images'));
@@ -19,39 +31,25 @@ app.get('/', function (req, res) {
     res.sendfile(__dirname + '/views/index.html');
 });
 
-//Connections
-var connections = 0;
-var waitingPlayers = [];
+server.listen(port);
 
 io.sockets.on('connection', function (socket) {
 
-    var paddleHeight = 100;
-    var paddleWidth = 10;
-    var rightPaddleX = 760;
-    var leftPaddleX = 30;
-    var ballDiameter = 6;
-    var paddleFrictionCoeff = 0.25;
-    var winningScore = 5;
+    connections++;
+    updateConnectionCount();
 
     socket.currentGame = null;
     socket.player = null;
     socket.winStreak = 0;
 
-    connections++;
-    io.sockets.emit('connection_count', {
-        count: connections
-    });
-
     socket.on('disconnect', function () {
         connections--;
+        updateConnectionCount();
         if(socket.currentGame !== null) {
             socket.currentGame.destroy();
         } else {
             removeFromWaitingPlayers(socket);
         }
-        io.sockets.emit('connection_count', {
-            count: connections
-        });
     });
 
     socket.on('find_game', function(data) {
@@ -69,7 +67,7 @@ io.sockets.on('connection', function (socket) {
               }
         };
         if(waitingPlayers.length > 0) {
-            var newOpponent = waitingPlayers.shift(); // Optimize later
+            var newOpponent = waitingPlayers.shift();
             createGame(player, newOpponent);
         } else {
             waitingPlayers.push(player);
@@ -78,211 +76,14 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('game_setup', function() {
        if(socket.currentGame.setup) {
-           var sckt = socket;
-           sckt.currentGame.positionPaddles();
-           sckt.currentGame.update();
-           setTimeout(function() {sckt.currentGame.serveBall();}, 1000);
+           socket.currentGame.firstServe();
        } else {
            socket.currentGame.setup = true;
        }
     });
 
     function createGame(player1, player2) {
-        var game = {
-            player1: player1,
-            player2: player2,
-            p1Score: 0,
-            p2Score: 0,
-            setup: false,
-            interval: null,
-            serveTimeout: null,
-            p1PlayAgain: false,
-            p2PlayerAgain: false,
-            ball: {
-                x: 0,
-                y: 0,
-                speedX: 0,
-                speedY: 0
-            },
-            serveBall: function() {
-                try {
-                    clearInterval(this.interval);
-                } catch(e) {}
-                try {
-                    clearTimeout(this.serveTimeout);
-                } catch(e) {}
-                this.positionPaddles();
-                this.ball.speedX = 12;
-                this.ball.speedY = 2;
-                var g = this;
-                this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
-            },
-            positionPaddles: function () {
-                this.ball.y = 260;
-                this.ball.x = 397;
-                this.player1.paddle.pos = 225;
-                this.player2.paddle.pos = 225;
-            },
-            onEnterFrame: function() {
-                //Move Ball
-                this.ball.x += this.ball.speedX;
-                this.ball.y += this.ball.speedY;
-
-                //Handle Top/Bottom Edges
-                if(this.ball.y+ballDiameter > 525 || this.ball.y-ballDiameter < 0) {
-                    this.ball.speedY = -this.ball.speedY;
-                    this.ball.y = Math.min(Math.max(this.ball.y, 0), 525-ballDiameter)
-                }
-
-                //Move Player Paddles
-                if(player1.paddle.keyDown) {
-                    if(player1.paddle.direction === 'up') {
-                        player1.paddle.speed = Math.max(Math.min(player1.paddle.speed*1.1, -7), -17);
-                    } else if(player1.paddle.direction === 'down') {
-                        player1.paddle.speed = Math.min(Math.max(player1.paddle.speed*1.1, 7), 17);
-                    }
-                } else {
-                    player1.paddle.speed = player1.paddle.speed * 0.68;
-                    if(Math.abs(player1.paddle.speed) < 0.5) player1.paddle.speed = 0;
-                }
-
-                if(player2.paddle.keyDown) {
-                    if(player2.paddle.direction === 'up') {
-                        player2.paddle.speed = Math.max(Math.min(player2.paddle.speed*1.1, -7), -17);
-                    } else if(player2.paddle.direction === 'down') {
-                        player2.paddle.speed = Math.min(Math.max(player2.paddle.speed*1.1, 7), 17);
-                    }
-                } else {
-                    player2.paddle.speed = player2.paddle.speed * 0.68;
-                    if(Math.abs(player2.paddle.speed) < 0.5) player2.paddle.speed = 0;
-                }
-
-                player1.paddle.pos = Math.max(Math.min(player1.paddle.pos + player1.paddle.speed, 425), 0);
-                player2.paddle.pos = Math.max(Math.min(player2.paddle.pos + player2.paddle.speed, 425), 0);
-
-                //Check for collisions with paddles
-                if(this.ball.x+ballDiameter > rightPaddleX && this.ball.x < rightPaddleX+paddleWidth && this.ball.y+ballDiameter > player1.paddle.pos && this.ball.y < player1.paddle.pos+paddleHeight) {
-                    this.ball.speedX = -this.ball.speedX;
-                    this.ball.speedY -= player1.paddle.speed * paddleFrictionCoeff;
-                    this.ball.x = rightPaddleX-ballDiameter;
-                }
-
-                if(this.ball.x < leftPaddleX+paddleWidth && this.ball.x+ballDiameter > leftPaddleX && this.ball.y+ballDiameter > player2.paddle.pos && this.ball.y < player2.paddle.pos+paddleHeight ) {
-                    this.ball.speedX = -this.ball.speedX;
-                    this.ball.speedY -= player2.paddle.speed * paddleFrictionCoeff;
-                    this.ball.x = leftPaddleX+paddleWidth;
-                }
-
-                //Scoring
-                if(this.ball.x+ballDiameter > 800) {
-                    this.ball.x = 800-ballDiameter;
-                    this.ball.speedX = 0;
-                    this.ball.speedY = 0;
-                    this.p2Score++;
-                    if(this.p2Score === winningScore) {
-                        this.update();
-                        this.player2.socket.winStreak++;
-                        this.gameOver();
-                        return;
-                    } else {
-                        var g = this;
-                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1500);
-                    }
-                }
-                if (this.ball.x < 0) {
-                    this.ball.x = 0+ballDiameter;
-                    this.ball.speedX = 0;
-                    this.ball.speedY = 0;
-                    this.p1Score++;
-                    if(this.p1Score === winningScore) {
-                        this.update();
-                        this.player1.socket.winStreak++;
-                        this.gameOver();
-                        return;
-                    } else {
-                        var g = this;
-                        this.serveTimeout = setTimeout(function() {g.serveBall();}, 1500);
-                    }
-                }
-
-                //Broadcast game state
-                this.update();
-            },
-            update: function() {
-                this.player1.socket.emit('update_positions', this.updateData());
-                this.player2.socket.emit('update_positions', this.updateData());
-            },
-            updateData: function () {
-              return {
-                  ball_x: this.ball.x,
-                  ball_y: this.ball.y,
-                  player1_pos: this.player1.paddle.pos,
-                  player2_pos: this.player2.paddle.pos,
-                  player1_score: this.p1Score,
-                  player2_score: this.p2Score
-              };
-            },
-            gameOver: function() {
-                clearInterval(this.interval);
-                clearTimeout(this.serveTimeout);
-                this.p1PlayAgain = false;
-                this.p2PlayAgain = false;
-                this.player1.socket.on('play_again', this.playAgainRequest);
-                this.player2.socket.on('play_again', this.playAgainRequest);
-                this.player1.socket.emit('game_over', { won: (this.p1Score === winningScore) });
-                this.player2.socket.emit('game_over', { won: (this.p2Score === winningScore) });
-            },
-            destroy: function() {
-                clearInterval(this.interval);
-                clearTimeout(this.serveTimeout);
-                this.player1.socket.emit('opponent_left');
-                this.player2.socket.emit('opponent_left');
-                this.player1.socket.currentGame = null;
-                this.player2.socket.currentGame = null;
-                this.player1.socket.player = null;
-                this.player2.socket.player = null;
-            },
-            playAgainRequest: function() {
-                if(this.player === this.currentGame.player1){
-                    this.currentGame.p1PlayAgain = true;
-                }
-                if(this.player === this.currentGame.player2){
-                    this.currentGame.p2PlayAgain = true;
-                }
-
-                if(this.currentGame.p1PlayAgain && this.currentGame.p2PlayAgain) {
-                    this.currentGame.resetGame();
-                }
-            },
-            resetGame: function() {
-                this.p1Score = 0;
-                this.p2Score = 0;
-                this.player1.paddle.direction = null;
-                this.player2.paddle.direction = null;
-                this.player1.paddle.keyDown = false;
-                this.player2.paddle.keyDown = false;
-                this.setup = false;
-
-                this.player1.socket.emit('replay', {
-                    paddleHeight: paddleHeight,
-                    paddleWidth: paddleWidth,
-                    rightPaddleX: rightPaddleX,
-                    leftPaddleX: leftPaddleX,
-                    ballDiameter: ballDiameter
-                });
-                this.player2.socket.emit('replay', {
-                    paddleHeight: paddleHeight,
-                    paddleWidth: paddleWidth,
-                    rightPaddleX: rightPaddleX,
-                    leftPaddleX: leftPaddleX,
-                    ballDiameter: ballDiameter
-                });
-                var g = this;
-                this.player1.socket.removeListener('play_again', g.playAgainRequest);
-                this.player2.socket.removeListener('play_again', g.playAgainRequest);
-                this.serveTimeout = setTimeout(function() {g.serveBall();}, 1000);
-            }
-        }; // end of game
+        var game = newGame(player1, player2, gameSpec);
 
         player1.socket.currentGame = game;
         player2.socket.currentGame = game;
@@ -310,25 +111,19 @@ io.sockets.on('connection', function (socket) {
         player1.socket.emit('game_found', {
             opponent: {name: player2.name},
             isFirstPlayer: true,
-            gameSpec: {
-                paddleHeight: paddleHeight,
-                paddleWidth: paddleWidth,
-                rightPaddleX: rightPaddleX,
-                leftPaddleX: leftPaddleX,
-                ballDiameter: ballDiameter
-            }
+            gameSpec: gameSpec
         });
 
         player2.socket.emit('game_found', {
             opponent: {name: player1.name},
             isFirstPlayer: false,
-            gameSpec: {
-                paddleHeight: paddleHeight,
-                paddleWidth: paddleWidth,
-                rightPaddleX: rightPaddleX,
-                leftPaddleX: leftPaddleX,
-                ballDiameter: ballDiameter
-            }
+            gameSpec: gameSpec
+        });
+    }
+
+    function updateConnectionCount() {
+        io.sockets.emit('connection_count', {
+            count: connections
         });
     }
 
@@ -341,4 +136,203 @@ io.sockets.on('connection', function (socket) {
     }
 
 });
+
+var newGame = function(player1, player2, spec) {
+
+    var p1Score = 0,
+        p2Score = 0,
+        setup = false,
+        interval = null,
+        serveTimeout = null,
+        p1PlayAgain = false,
+        p2PlayAgain = false,
+        ball = {
+            x: 0,
+            y: 0,
+            speedX: 0,
+            speedY: 0
+        };
+
+    function firstServe() {
+        positionPaddles();
+        update();
+        setTimeout(serveBall, 1000);
+    }
+
+    function serveBall() {
+        try {
+            clearInterval(interval);
+        } catch(e) {}
+        try {
+            clearTimeout(serveTimeout);
+        } catch(e) {}
+        positionPaddles();
+        ball.speedX = 12;
+        ball.speedY = 2;
+        interval = setInterval(onEnterFrame, spec.framesPerSecond);
+    }
+
+    function positionPaddles() {
+        ball.y = (spec.fieldHeight-spec.ballDiameter) / 2;
+        ball.x = (spec.fieldWidth-spec.ballDiameter) / 2;
+
+        var startingPaddlePosition = (spec.fieldHeight-spec.paddleHeight) / 2;
+        player1.paddle.pos = startingPaddlePosition;
+        player2.paddle.pos = startingPaddlePosition;
+    }
+
+    function onEnterFrame() {
+        //Move Ball
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+
+        //Handle Top/Bottom Edges
+        if(ball.y+spec.ballDiameter > spec.fieldHeight || ball.y-spec.ballDiameter < 0) {
+            ball.speedY = -ball.speedY;
+            ball.y = Math.min(Math.max(ball.y, 0), spec.fieldWidth-spec.ballDiameter)
+        }
+
+        //Move Player Paddles
+        if(player1.paddle.keyDown) {
+            if(player1.paddle.direction === 'up') {
+                player1.paddle.speed = Math.max(Math.min(player1.paddle.speed*1.1, -7), -17);
+            } else if(player1.paddle.direction === 'down') {
+                player1.paddle.speed = Math.min(Math.max(player1.paddle.speed*1.1, 7), 17);
+            }
+        } else {
+            player1.paddle.speed = player1.paddle.speed * 0.68;
+            if(Math.abs(player1.paddle.speed) < 0.5) player1.paddle.speed = 0;
+        }
+
+        if(player2.paddle.keyDown) {
+            if(player2.paddle.direction === 'up') {
+                player2.paddle.speed = Math.max(Math.min(player2.paddle.speed*1.1, -7), -17);
+            } else if(player2.paddle.direction === 'down') {
+                player2.paddle.speed = Math.min(Math.max(player2.paddle.speed*1.1, 7), 17);
+            }
+        } else {
+            player2.paddle.speed = player2.paddle.speed * 0.68;
+            if(Math.abs(player2.paddle.speed) < 0.5) player2.paddle.speed = 0;
+        }
+
+        player1.paddle.pos = Math.max(Math.min(player1.paddle.pos + player1.paddle.speed, 425), 0);
+        player2.paddle.pos = Math.max(Math.min(player2.paddle.pos + player2.paddle.speed, 425), 0);
+
+        //Check for collisions with paddles
+        if(ball.x+spec.ballDiameter > spec.rightPaddleX && ball.x < spec.rightPaddleX+spec.paddleWidth && ball.y+spec.ballDiameter > player1.paddle.pos && ball.y < player1.paddle.pos+spec.paddleHeight) {
+            ball.speedX = -ball.speedX;
+            ball.speedY -= player1.paddle.speed * spec.paddleFrictionCoeff;
+            ball.x = spec.rightPaddleX-spec.ballDiameter;
+        }
+
+        if(ball.x < spec.leftPaddleX+spec.paddleWidth && ball.x+spec.ballDiameter > spec.leftPaddleX && ball.y+spec.ballDiameter > player2.paddle.pos && ball.y < player2.paddle.pos+spec.paddleHeight ) {
+            ball.speedX = -ball.speedX;
+            ball.speedY -= player2.paddle.speed * spec.paddleFrictionCoeff;
+            ball.x = spec.leftPaddleX+spec.paddleWidth;
+        }
+
+        //Scoring
+        if(ball.x+spec.ballDiameter > 800) {
+            ball.x = 800-spec.ballDiameter;
+            ball.speedX = 0;
+            ball.speedY = 0;
+            p2Score++;
+            if(p2Score === spec.winningScore) {
+                update();
+                player2.socket.winStreak++;
+                gameOver();
+                return;
+            } else {
+                serveTimeout = setTimeout(serveBall, 1500);
+            }
+        }
+        if (ball.x < 0) {
+            ball.x = spec.ballDiameter;
+            ball.speedX = 0;
+            ball.speedY = 0;
+            p1Score++;
+            if(p1Score === spec.winningScore) {
+                update();
+                player1.socket.winStreak++;
+                gameOver();
+                return;
+            } else {
+                serveTimeout = setTimeout(serveBall, 1500);
+            }
+        }
+
+        //Broadcast game state
+        update();
+    }
+
+    function update() {
+        player1.socket.emit('update_positions', updateData());
+        player2.socket.emit('update_positions', updateData());
+    }
+
+    function updateData() {
+        return {
+            ball_x: ball.x,
+            ball_y: ball.y,
+            player1_pos: player1.paddle.pos,
+            player2_pos: player2.paddle.pos,
+            player1_score: p1Score,
+            player2_score: p2Score
+        };
+    }
+
+    function gameOver() {
+        clearInterval(interval);
+        clearTimeout(serveTimeout);
+        p1PlayAgain = false;
+        p2PlayAgain = false;
+        player1.socket.on('play_again', playAgainRequest);
+        player2.socket.on('play_again', playAgainRequest);
+        player1.socket.emit('game_over', { won: (p1Score === spec.winningScore) });
+        player2.socket.emit('game_over', { won: (p2Score === spec.winningScore) });
+    }
+
+    function destroy () {
+        clearInterval(interval);
+        clearTimeout(serveTimeout);
+        player1.socket.emit('opponent_left');
+        player2.socket.emit('opponent_left');
+        player1.socket.currentGame = null;
+        player2.socket.currentGame = null;
+        player1.socket.player = null;
+        player2.socket.player = null;
+    }
+
+    function playAgainRequest() {
+        p1PlayAgain = p1PlayAgain || this.player === player1;
+        p2PlayAgain = p2PlayAgain || this.player === player2;
+
+        if(p1PlayAgain && p2PlayAgain) {
+            resetGame();
+        }
+    }
+
+    function resetGame() {
+        p1Score = 0;
+        p2Score = 0;
+        player1.paddle.direction = null;
+        player2.paddle.direction = null;
+        player1.paddle.keyDown = false;
+        player2.paddle.keyDown = false;
+        setup = false;
+
+        player1.socket.emit('replay', spec);
+        player2.socket.emit('replay', spec);
+        player1.socket.removeListener('play_again', playAgainRequest);
+        player2.socket.removeListener('play_again', playAgainRequest);
+        serveTimeout = setTimeout(serveBall, 1000);
+    }
+
+  return {
+    setup: setup,
+    firstServe: firstServe,
+    serveBall: serveBall,
+    destroy: destroy
+  };
+};
 
