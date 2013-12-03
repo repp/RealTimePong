@@ -80,7 +80,8 @@ io.sockets.on('connection', function (socket) {
        if(socket.currentGame.setup) {
            var sckt = socket;
            sckt.currentGame.positionPaddles();
-           setTimeout(function() {sckt.currentGame.serveBall();}, 8000);
+           sckt.currentGame.update();
+           setTimeout(function() {sckt.currentGame.serveBall();}, 1000);
        } else {
            socket.currentGame.setup = true;
        }
