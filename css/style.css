@@ -122,6 +122,10 @@ div#game {
     transition: all 1s;
 }
 
+canvas#pong {
+    display: none;
+}
+
 div#game.active {
     border: 2px solid #89edfd;
     box-shadow: inset 0 0 200px rgba(0,0,0,0.4),

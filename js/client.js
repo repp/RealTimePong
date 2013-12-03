@@ -51,6 +51,7 @@ var pongClient = (function() {
             socket.removeListener('replay', setupGame);
         } catch(e) {}
 
+        hud.showPong();
         game.setup(spec);
         hud.hideMessages();
 
@@ -90,6 +91,7 @@ var pongClient = (function() {
 
     function onGameOver(data) {
         socket.removeListener('game_over', onGameOver);
+        hud.hidePong();
         hud.showGameOver(data.won);
         destroyGame();
     }

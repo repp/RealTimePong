@@ -79,7 +79,8 @@ io.sockets.on('connection', function (socket) {
     socket.on('game_setup', function() {
        if(socket.currentGame.setup) {
            var sckt = socket;
-           setTimeout(function() {sckt.currentGame.serveBall();}, 2000);
+           sckt.currentGame.positionPaddles();
+           setTimeout(function() {sckt.currentGame.serveBall();}, 8000);
        } else {
            socket.currentGame.setup = true;
        }
@@ -109,14 +110,17 @@ io.sockets.on('connection', function (socket) {
                 try {
                     clearTimeout(this.serveTimeout);
                 } catch(e) {}
-                this.ball.y = 260;
-                this.ball.x = 397;
+                this.positionPaddles();
                 this.ball.speedX = 12;
                 this.ball.speedY = 2;
-                this.player1.paddle.pos = 225;
-                this.player2.paddle.pos = 225;
                 var g = this;
                 this.interval = setInterval(function() { g.onEnterFrame(); }, 31);
+            },
+            positionPaddles: function () {
+                this.ball.y = 260;
+                this.ball.x = 397;
+                this.player1.paddle.pos = 225;
+                this.player2.paddle.pos = 225;
             },
             onEnterFrame: function() {
                 //Move Ball

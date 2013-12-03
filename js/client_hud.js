@@ -11,7 +11,8 @@ var ClientHUD = function() {
         $findOpponentAnim,
         $playAgain,
         $action,
-        $game;
+        $game,
+        $pong;
 
     function findDOMElements() {
         $connectionCount = $('span#connection-count');
@@ -21,6 +22,7 @@ var ClientHUD = function() {
         $action = $('#network-message');
 
         $game = $('#game');
+        $pong = $('#pong');
         $playerName  = $('#player-name');
         $opponentName = $('#opponent-name');
         $playerScore = $('#player-score');
@@ -76,11 +78,19 @@ var ClientHUD = function() {
     function onOpponentLeft() {
         clearScoreboard();
         $opponentName.html('');
-        $opponentScore.html('');
-        $playerScore.html('');
+        //$opponentScore.html('');
+        //$playerScore.html('');
         $action.append('<br />' + opponentName + ' has left the game.');
         $playAgain.hide();
         $findNewOpponent.show();
+    }
+
+    function showPong() {
+        $pong.show();
+    }
+
+    function hidePong() {
+        $pong.hide();
     }
 
     function showMessages() {
@@ -137,7 +147,9 @@ var ClientHUD = function() {
         hideMessages: hideMessages,
         updateScore: updateScore,
         showGameOver: showGameOver,
-        onPlayAgain: onPlayAgain
+        onPlayAgain: onPlayAgain,
+        showPong: showPong,
+        hidePong: hidePong
     };
 
 };
