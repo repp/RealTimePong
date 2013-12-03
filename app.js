@@ -68,7 +68,7 @@ io.sockets.on('connection', function (socket) {
         };
         if(waitingPlayers.length > 0) {
             var newOpponent = waitingPlayers.shift();
-            createGame(player, newOpponent);
+            newGame(player, newOpponent, gameSpec);
         } else {
             waitingPlayers.push(player);
         }
@@ -81,45 +81,6 @@ io.sockets.on('connection', function (socket) {
            socket.currentGame.setup = true;
        }
     });
-
-    function createGame(player1, player2) {
-        var game = newGame(player1, player2, gameSpec);
-
-        player1.socket.currentGame = game;
-        player2.socket.currentGame = game;
-        player1.socket.player = player1;
-        player2.socket.player = player2;
-
-        player1.socket.on('key_down', function(data) {
-            player1.paddle.keyDown = true;
-            player1.paddle.direction = data.direction;
-        });
-
-        player2.socket.on('key_down', function(data) {
-            player2.paddle.keyDown = true;
-            player2.paddle.direction = data.direction;
-        });
-
-        player1.socket.on('key_up', function() {
-            player1.paddle.keyDown = false;
-        });
-
-        player2.socket.on('key_up', function() {
-            player2.paddle.keyDown = false;
-        });
-
-        player1.socket.emit('game_found', {
-            opponent: {name: player2.name},
-            isFirstPlayer: true,
-            gameSpec: gameSpec
-        });
-
-        player2.socket.emit('game_found', {
-            opponent: {name: player1.name},
-            isFirstPlayer: false,
-            gameSpec: gameSpec
-        });
-    }
 
     function updateConnectionCount() {
         io.sockets.emit('connection_count', {
@@ -139,7 +100,8 @@ io.sockets.on('connection', function (socket) {
 
 var newGame = function(player1, player2, spec) {
 
-    var p1Score = 0,
+    var game,
+        p1Score = 0,
         p2Score = 0,
         setup = false,
         interval = null,
@@ -152,6 +114,38 @@ var newGame = function(player1, player2, spec) {
             speedX: 0,
             speedY: 0
         };
+
+    function init() {
+        game = {
+            init: init,
+            setup: setup,
+            firstServe: firstServe,
+            serveBall: serveBall,
+            destroy: destroy
+        };
+        addSocketListeners(player1, player2.name, true);
+        addSocketListeners(player2, player1.name, false);
+    }
+
+    function addSocketListeners(player, opponentName, isFirstPlayer) {
+        player.socket.currentGame = game;
+        player.socket.player = player;
+
+        player.socket.on('key_down', function(data) {
+            player.paddle.keyDown = true;
+            player.paddle.direction = data.direction;
+        });
+
+        player.socket.on('key_up', function() {
+            player.paddle.keyDown = false;
+        });
+
+        player.socket.emit('game_found', {
+            opponent: {name: opponentName},
+            isFirstPlayer: isFirstPlayer,
+            gameSpec: spec
+        });
+    }
 
     function firstServe() {
         positionPaddles();
@@ -328,11 +322,7 @@ var newGame = function(player1, player2, spec) {
         serveTimeout = setTimeout(serveBall, 1000);
     }
 
-  return {
-    setup: setup,
-    firstServe: firstServe,
-    serveBall: serveBall,
-    destroy: destroy
-  };
+  init();
+  return game;
 };
 
