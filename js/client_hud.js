@@ -5,6 +5,7 @@ var ClientHUD = function() {
         $opponentName,
         $playerScore,
         $opponentScore,
+        $scoreLights,
         $connectionCount,
         $playForm,
         $findNewOpponent,
@@ -27,6 +28,7 @@ var ClientHUD = function() {
         $opponentName = $('#opponent-name');
         $playerScore = $('#player-score');
         $opponentScore = $('#opponent-score');
+        $scoreLights = $('.score-light');
         $findOpponentAnim = $('#loading-animation');
         $findOpponentAnim.hide();
     }
@@ -50,7 +52,7 @@ var ClientHUD = function() {
         $findOpponentAnim.show();
         $action.show();
         $game.addClass('active');
-        $('.score-light').fadeIn();
+        $scoreLights.fadeIn();
     }
 
     function setPlayerName() {
@@ -131,7 +133,7 @@ var ClientHUD = function() {
     }
 
     function clearScoreboard() {
-        $('.score-light').removeClass('active');
+        $scoreLights.removeClass('active');
     }
 
     return {

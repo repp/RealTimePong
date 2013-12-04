@@ -107,6 +107,7 @@ header div.connections, header div.streak {
     color: #e5e5e5;
     font-weight: bold;
     letter-spacing: 0;
+    margin-top: 14px;
 }
 header div.connections span, header div.streak span {
     font-weight: normal;
