@@ -91,11 +91,24 @@ io.sockets.on('connection', function (socket) {
 var createBall = function () {
 
     var START_X = (gameSpec.fieldWidth - gameSpec.ballDiameter) / 2,
-        START_Y = (gameSpec.fieldHeight - gameSpec.ballDiameter) / 2;
+        START_Y = (gameSpec.fieldHeight - gameSpec.ballDiameter) / 2,
+        diameter = gameSpec.ballDiameter;
 
     function randomServe() {
         this.speedX = 12;
         this.speedY = 2;
+    }
+
+    function onEnterFrame() {
+        //Move
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        //Handle Top/Bottom Edges
+        if (this.y + diameter > gameSpec.fieldHeight || this.y - diameter < 0) {
+            this.speedY = -this.speedY;
+            this.y = Math.min( Math.max(this.y, 0) , (gameSpec.fieldWidth-diameter) );
+        }
     }
 
     function reset() {
@@ -109,6 +122,7 @@ var createBall = function () {
         speedX:0,
         speedY:0,
         randomServe: randomServe,
+        onEnterFrame: onEnterFrame,
         reset:reset
     };
 };
@@ -124,11 +138,32 @@ var createPlayer = function (socket, name) {
             speed = 0,
             direction = null,
             keyDown = false,
-            START_Y = (gameSpec.fieldHeight - gameSpec.paddleHeight) / 2;
+            START_Y = (gameSpec.fieldHeight - gameSpec.paddleHeight) / 2,
+            MAX_Y = gameSpec.fieldHeight - gameSpec.paddleHeight,
+            MIN_Y = 0;
 
-        function move(data) {
-            this.keyDown = true;
-            this.direction = data.direction;
+
+        function onEnterFrame() {
+            if (this.keyDown) {
+               this.move();
+            } else if (this.speed !== 0) {
+               this.slideToAStop();
+            }
+            // Ensure we never go off either edge.
+            this.pos = Math.max(Math.min(this.pos + this.speed, MAX_Y), MIN_Y);
+        }
+
+        function move() {
+            if (this.direction === 'up') {
+                this.speed = Math.max(Math.min(this.speed * 1.1, -7), -17);
+            } else if (this.direction === 'down') {
+                this.speed = Math.min(Math.max(this.speed * 1.1, 7), 17);
+            }
+        }
+
+        function slideToAStop() {
+            this.speed = this.speed * 0.68;
+            if (Math.abs(this.speed) < 0.5) this.speed = 0;
         }
 
         function reset() {
@@ -143,7 +178,9 @@ var createPlayer = function (socket, name) {
             speed:speed,
             direction:direction,
             keyDown:keyDown,
+            onEnterFrame: onEnterFrame,
             move: move,
+            slideToAStop: slideToAStop,
             reset:reset
         };
     }
@@ -249,41 +286,10 @@ var createGame = function (player1, player2, spec) {
     }
 
     function onEnterFrame() {
-        //Move Ball
-        ball.x += ball.speedX;
-        ball.y += ball.speedY;
+        ball.onEnterFrame();
 
-        //Handle Top/Bottom Edges
-        if (ball.y + spec.ballDiameter > spec.fieldHeight || ball.y - spec.ballDiameter < 0) {
-            ball.speedY = -ball.speedY;
-            ball.y = Math.min(Math.max(ball.y, 0), spec.fieldWidth - spec.ballDiameter)
-        }
-
-        //Move Player Paddles
-        if (player1.paddle.keyDown) {
-            if (player1.paddle.direction === 'up') {
-                player1.paddle.speed = Math.max(Math.min(player1.paddle.speed * 1.1, -7), -17);
-            } else if (player1.paddle.direction === 'down') {
-                player1.paddle.speed = Math.min(Math.max(player1.paddle.speed * 1.1, 7), 17);
-            }
-        } else {
-            player1.paddle.speed = player1.paddle.speed * 0.68;
-            if (Math.abs(player1.paddle.speed) < 0.5) player1.paddle.speed = 0;
-        }
-
-        if (player2.paddle.keyDown) {
-            if (player2.paddle.direction === 'up') {
-                player2.paddle.speed = Math.max(Math.min(player2.paddle.speed * 1.1, -7), -17);
-            } else if (player2.paddle.direction === 'down') {
-                player2.paddle.speed = Math.min(Math.max(player2.paddle.speed * 1.1, 7), 17);
-            }
-        } else {
-            player2.paddle.speed = player2.paddle.speed * 0.68;
-            if (Math.abs(player2.paddle.speed) < 0.5) player2.paddle.speed = 0;
-        }
-
-        player1.paddle.pos = Math.max(Math.min(player1.paddle.pos + player1.paddle.speed, 425), 0);
-        player2.paddle.pos = Math.max(Math.min(player2.paddle.pos + player2.paddle.speed, 425), 0);
+        player1.paddle.onEnterFrame();
+        player2.paddle.onEnterFrame();
 
         //Check for collisions with paddles
         if (ball.x + spec.ballDiameter > spec.rightPaddleX && ball.x < spec.rightPaddleX + spec.paddleWidth && ball.y + spec.ballDiameter > player1.paddle.pos && ball.y < player1.paddle.pos + spec.paddleHeight) {
