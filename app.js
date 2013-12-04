@@ -89,11 +89,27 @@ io.sockets.on('connection', function (socket) {
 });
 
 var createBall = function () {
+
+    var START_X = (gameSpec.fieldWidth - gameSpec.ballDiameter) / 2,
+        START_Y = (gameSpec.fieldHeight - gameSpec.ballDiameter) / 2;
+
+    function randomServe() {
+        this.speedX = 12;
+        this.speedY = 2;
+    }
+
+    function reset() {
+        this.x = START_X;
+        this.y = START_Y;
+    }
+
     return {
-        x:0,
-        y:0,
+        x:START_X,
+        y:START_Y,
         speedX:0,
-        speedY:0
+        speedY:0,
+        randomServe: randomServe,
+        reset:reset
     };
 };
 
@@ -108,7 +124,7 @@ var createPlayer = function (socket, name) {
             speed = 0,
             direction = null,
             keyDown = false,
-            originalPaddlePosition = (gameSpec.fieldHeight - gameSpec.paddleHeight) / 2;
+            START_Y = (gameSpec.fieldHeight - gameSpec.paddleHeight) / 2;
 
         function move(data) {
             this.keyDown = true;
@@ -116,7 +132,7 @@ var createPlayer = function (socket, name) {
         }
 
         function reset() {
-            this.pos = originalPaddlePosition;
+            this.pos = START_Y;
             this.speed = 0;
             this.direction = null;
             this.keyDown = false;
@@ -222,15 +238,12 @@ var createGame = function (player1, player2, spec) {
     function serveBall() {
         clearTimers();
         positionPaddles();
-        ball.speedX = 12;
-        ball.speedY = 2;
+        ball.randomServe();
         interval = setInterval(onEnterFrame, spec.framesPerSecond);
     }
 
     function positionPaddles() {
-        ball.y = (spec.fieldHeight - spec.ballDiameter) / 2;
-        ball.x = (spec.fieldWidth - spec.ballDiameter) / 2;
-
+        ball.reset();
         player1.paddle.reset();
         player2.paddle.reset();
     }
