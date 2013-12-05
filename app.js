@@ -23,7 +23,11 @@ var app = require('express')()
           slideFriction: 0.68
         },
         ball: {
-            diameter: 6
+            diameter: 6,
+            maxServeSpeed: 15,
+            minServeSpeed: 10,
+            acceleration: 1.05,
+            maxSpeed: 32
         },
         game: {
             serveDelay: 1500,
@@ -109,8 +113,9 @@ var createBall = function () {
         START_Y = (gameSpec.field.height - diameter) / 2;
 
     function randomServe() {
-        this.speedX = 12;
-        this.speedY = 0;
+        this.speedX = spec.minServeSpeed + (spec.maxServeSpeed-spec.minServeSpeed)*Math.random();
+        var maxSpeedY = (this.speedX*(gameSpec.field.height/2))/(gameSpec.field.width/2);
+        this.speedY = -maxSpeedY + maxSpeedY*2*Math.random();
     }
 
     function onEnterFrame() {
