@@ -96,7 +96,7 @@ var createBall = function () {
 
     function randomServe() {
         this.speedX = 12;
-        this.speedY = 2;
+        this.speedY = 0;
     }
 
     function onEnterFrame() {
@@ -111,6 +111,22 @@ var createBall = function () {
         }
     }
 
+    function hasCollidedWith(paddle) {
+        return (this.x + diameter > paddle.x && this.x < paddle.x + paddle.width && this.y + diameter > paddle.y && this.y < paddle.y + paddle.height);
+    }
+
+    function bounceOff(paddle) {
+        this.speedX = -this.speedX;
+        this.speedY -= paddle.speed * gameSpec.paddleFrictionCoeff;
+        this.x = paddle.x + (this.x-this.speedX > paddle.x ? -diameter : paddle.width) ;
+    }
+
+    function stop() {
+        this.speedX = 0;
+        this.speedY = 0;
+        this.x = Math.min(Math.max(this.x, diameter), 800 - diameter);
+    }
+
     function reset() {
         this.x = START_X;
         this.y = START_Y;
@@ -123,6 +139,9 @@ var createBall = function () {
         speedY:0,
         randomServe: randomServe,
         onEnterFrame: onEnterFrame,
+        hasCollidedWith: hasCollidedWith,
+        bounceOff: bounceOff,
+        stop: stop,
         reset:reset
     };
 };
@@ -134,7 +153,10 @@ var createPlayer = function (socket, name) {
         playAgain = false;
 
     function createPaddle() {
-        var pos = 0,
+        var y = 0,
+            x = 0,
+            width = gameSpec.paddleWidth,
+            height = gameSpec.paddleHeight,
             speed = 0,
             direction = null,
             keyDown = false,
@@ -143,6 +165,10 @@ var createPlayer = function (socket, name) {
             MIN_Y = 0;
 
 
+        function positionX(rightSide) {
+          this.x = rightSide ? gameSpec.rightPaddleX : gameSpec.leftPaddleX
+        }
+
         function onEnterFrame() {
             if (this.keyDown) {
                this.move();
@@ -150,7 +176,7 @@ var createPlayer = function (socket, name) {
                this.slideToAStop();
             }
             // Ensure we never go off either edge.
-            this.pos = Math.max(Math.min(this.pos + this.speed, MAX_Y), MIN_Y);
+            this.y = Math.max(Math.min(this.y + this.speed, MAX_Y), MIN_Y);
         }
 
         function move() {
@@ -167,17 +193,21 @@ var createPlayer = function (socket, name) {
         }
 
         function reset() {
-            this.pos = START_Y;
+            this.y = START_Y;
             this.speed = 0;
             this.direction = null;
             this.keyDown = false;
         }
 
         return {
-            pos:pos,
+            y:y,
+            x:x,
+            width: width,
+            height: height,
             speed:speed,
             direction:direction,
             keyDown:keyDown,
+            positionX: positionX,
             onEnterFrame: onEnterFrame,
             move: move,
             slideToAStop: slideToAStop,
@@ -199,6 +229,7 @@ var createPlayer = function (socket, name) {
 
     function onGameFound(game, opponentName, isFirstPlayer) {
         socket.currentGame = game;
+        this.paddle.positionX(isFirstPlayer);
         this.addKeyListeners();
         socket.emit('game_found', {
             opponent:{ name:opponentName },
@@ -291,24 +322,12 @@ var createGame = function (player1, player2, spec) {
         player1.paddle.onEnterFrame();
         player2.paddle.onEnterFrame();
 
-        //Check for collisions with paddles
-        if (ball.x + spec.ballDiameter > spec.rightPaddleX && ball.x < spec.rightPaddleX + spec.paddleWidth && ball.y + spec.ballDiameter > player1.paddle.pos && ball.y < player1.paddle.pos + spec.paddleHeight) {
-            ball.speedX = -ball.speedX;
-            ball.speedY -= player1.paddle.speed * spec.paddleFrictionCoeff;
-            ball.x = spec.rightPaddleX - spec.ballDiameter;
-        }
-
-        if (ball.x < spec.leftPaddleX + spec.paddleWidth && ball.x + spec.ballDiameter > spec.leftPaddleX && ball.y + spec.ballDiameter > player2.paddle.pos && ball.y < player2.paddle.pos + spec.paddleHeight) {
-            ball.speedX = -ball.speedX;
-            ball.speedY -= player2.paddle.speed * spec.paddleFrictionCoeff;
-            ball.x = spec.leftPaddleX + spec.paddleWidth;
-        }
-
-        //Scoring
-        if (ball.x + spec.ballDiameter > 800) {
-            ball.x = 800 - spec.ballDiameter;
-            ball.speedX = 0;
-            ball.speedY = 0;
+        if(ball.hasCollidedWith(player1.paddle)) {        //Check for collisions with paddles
+            ball.bounceOff(player1.paddle);
+        } else if(ball.hasCollidedWith(player2.paddle)) { //Check for collisions with paddles
+            ball.bounceOff(player2.paddle);
+        } else if (ball.x + spec.ballDiameter > spec.fieldWidth) {    //scoring
+            ball.stop();
             player2.score++;
             if (player2.score === spec.winningScore) {
                 updateClients();
@@ -318,11 +337,8 @@ var createGame = function (player1, player2, spec) {
             } else {
                 serveTimeout = setTimeout(serveBall, 1500);
             }
-        }
-        if (ball.x < 0) {
-            ball.x = spec.ballDiameter;
-            ball.speedX = 0;
-            ball.speedY = 0;
+        } else if (ball.x < 0) {                          // scoring
+            ball.stop();
             player1.score++;
             if (player1.score === spec.winningScore) {
                 updateClients();
@@ -342,8 +358,8 @@ var createGame = function (player1, player2, spec) {
         var updateData = {
             ball_x:ball.x,
             ball_y:ball.y,
-            player1_pos:player1.paddle.pos,
-            player2_pos:player2.paddle.pos,
+            player1_pos:player1.paddle.y,
+            player2_pos:player2.paddle.y,
             player1_score:player1.score,
             player2_score:player2.score
         };
