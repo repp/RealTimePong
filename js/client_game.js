@@ -10,10 +10,10 @@ var ClientGame = function() {
         //Ball
         ball = new createjs.Container();
         var outterBall = new createjs.Shape();
-            outterBall.graphics.beginFill("#89edfd").drawCircle(0, 0, spec.ballDiameter);
+            outterBall.graphics.beginFill("#89edfd").drawCircle(0, 0, spec.ball.diameter);
             outterBall.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
         var innerBall = new createjs.Shape();
-            innerBall.graphics.beginFill("#c4f3fc").drawCircle(1, 1, spec.ballDiameter/3);
+            innerBall.graphics.beginFill("#c4f3fc").drawCircle(1, 1, spec.ball.diameter/3);
             innerBall.shadow = new createjs.Shadow("#ccf4fc", 0, 0, 2);
         ball.addChild(outterBall);
         ball.addChild(innerBall);
@@ -22,12 +22,12 @@ var ClientGame = function() {
         //Player Paddle
         playerPaddle = new createjs.Container();
         var outerPlayerPaddle = new createjs.Shape();
-            outerPlayerPaddle.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddleWidth, spec.paddleHeight, spec.paddleWidth/2);
+            outerPlayerPaddle.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddle.width, spec.paddle.height, spec.paddle.width/2);
             outerPlayerPaddle.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
         var innerPlayerPaddle = new createjs.Shape();
-            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddleWidth-8, spec.paddleHeight-8, spec.paddleWidth/2);
+            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddle.width-8, spec.paddle.height-8, spec.paddle.width/2);
             innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
-        playerPaddle.x = spec.rightPaddleX;
+        playerPaddle.x = spec.field.rightPaddleX;
         playerPaddle.addChild(outerPlayerPaddle);
         playerPaddle.addChild(innerPlayerPaddle);
         stage.addChild(playerPaddle);
@@ -35,12 +35,12 @@ var ClientGame = function() {
         //Opponent Paddle
         opponentPaddle = new createjs.Container();
         var outerPlayerPaddle2 = new createjs.Shape();
-            outerPlayerPaddle2.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddleWidth, spec.paddleHeight, spec.paddleWidth/2);
+            outerPlayerPaddle2.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddle.width, spec.paddle.height, spec.paddle.width/2);
             outerPlayerPaddle2.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
         var innerPlayerPaddle2 = new createjs.Shape();
-            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddleWidth-8, spec.paddleHeight-8, spec.paddleWidth/2);
+            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddle.width-8, spec.paddle.height-8, spec.paddle.width/2);
             innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
-        opponentPaddle.x = spec.leftPaddleX;
+        opponentPaddle.x = spec.field.leftPaddleX;
         opponentPaddle.addChild(outerPlayerPaddle2);
         opponentPaddle.addChild(innerPlayerPaddle2);
         stage.addChild(opponentPaddle);
