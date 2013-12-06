@@ -273,12 +273,17 @@ var createPlayer = function (socket, name) {
     function reset() {
         this.score = 0;
         this.paddle.reset();
+        this.playAgain = false;
         socket.emit('replay', gameSpec);
         socket.removeListener('play_again', socket.currentGame.playAgainRequest);
     }
 
     function updateClient(data) {
         socket.emit('update_positions', data);
+    }
+
+    function updateScores(data) {
+        socket.emit('update_scores', data);
     }
 
     return {
@@ -290,6 +295,7 @@ var createPlayer = function (socket, name) {
         addKeyListeners: addKeyListeners,
         playAgain:playAgain,
         updateClient:updateClient,
+        updateScores: updateScores,
         reset:reset,
         destroyGame:destroyGame,
         gameOver:gameOver
@@ -350,6 +356,7 @@ var createGame = function (player1, player2, spec) {
         } else if (ball.x + spec.ball.diameter > spec.field.width) {    //scoring
             ball.stop();
             player2.score++;
+            updateScores();
             if (player2.score === spec.game.winningScore) {
                 updateClients();
                 player2.socket.winStreak++;
@@ -361,6 +368,7 @@ var createGame = function (player1, player2, spec) {
         } else if (ball.x < 0) {                          // scoring
             ball.stop();
             player1.score++;
+            updateScores();
             if (player1.score === spec.game.winningScore) {
                 updateClients();
                 player1.socket.winStreak++;
@@ -377,15 +385,24 @@ var createGame = function (player1, player2, spec) {
 
     function updateClients() {
         var updateData = {
-            ball_x:ball.x,
-            ball_y:ball.y,
-            player1_pos:player1.paddle.y,
-            player2_pos:player2.paddle.y,
-            player1_score:player1.score,
-            player2_score:player2.score
+            ball_x: Math.round(ball.x),
+            ball_y: Math.round(ball.y),
+            ball_speed_x: ball.speedX,
+            ball_speed_y: ball.speedY,
+            player1_pos: Math.round(player1.paddle.y),
+            player2_pos: Math.round(player2.paddle.y)
         };
         player1.updateClient(updateData);
         player2.updateClient(updateData);
+    }
+
+    function updateScores() {
+        var updateData = {
+            player1_score:player1.score,
+            player2_score:player2.score
+        };
+        player1.updateScores(updateData);
+        player2.updateScores(updateData);
     }
 
     function gameOver() {
@@ -401,10 +418,10 @@ var createGame = function (player1, player2, spec) {
     }
 
     function playAgainRequest() {
-        if(this.id === player1.socket.id) {
+        if(this === player1.socket) {
             player1.playAgain = true;
         }
-        if(this.id === player2.socket.id) {
+        if(this === player2.socket) {
             player2.playAgain = true;
         }
         if (player1.playAgain && player2.playAgain) {

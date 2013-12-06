@@ -1,8 +1,17 @@
 var ClientGame = function() {
     var stage,
         ball,
+        ball_speed_x,
+        ball_speed_y,
         playerPaddle,
-        opponentPaddle;
+        opponentPaddle,
+        isFirstPlayer,
+        smoothingFactor = 3,
+        smoothingInterval;
+
+    function setFirstPlayer(fp) {
+        isFirstPlayer = fp;
+    }
 
     function setup(spec) {
         stage = new createjs.Stage("pong");
@@ -46,6 +55,17 @@ var ClientGame = function() {
         stage.addChild(opponentPaddle);
 
         stage.update();
+        startSmoothing(spec.game.fps);
+    }
+
+    function updatePositions(data) {
+        ball_speed_x = data.ball_speed_x;
+        ball_speed_y = data.ball_speed_y;
+        if(isFirstPlayer) {
+            updateFirstPlayer(data);
+        } else {
+            updateSecondPlayer(data);
+        }
     }
 
     function updateFirstPlayer(data) {
@@ -65,6 +85,7 @@ var ClientGame = function() {
     }
 
     function destroy() {
+        stopSmoothing();
         if(stage !== null) {
             stage.removeAllChildren();
             stage.update();
@@ -75,10 +96,30 @@ var ClientGame = function() {
         }
     }
 
+    function startSmoothing(fps) {
+        smoothingInterval = setInterval(smooth, fps/smoothingFactor);
+    }
+
+    function smooth() {
+        if(isFirstPlayer) {
+            ball.x += ball_speed_x/smoothingFactor;
+        } else {
+            ball.x -= ball_speed_x/smoothingFactor;
+        }
+        ball.y += ball_speed_y/smoothingFactor;
+        stage.update();
+    }
+
+    function stopSmoothing() {
+        try {
+            clearInterval(smoothingInterval);
+        } catch (e) { }
+    }
+
     return {
+        setFirstPlayer: setFirstPlayer,
         setup: setup,
-        updateFirstPlayer: updateFirstPlayer,
-        updateSecondPlayer: updateSecondPlayer,
+        updatePositions: updatePositions,
         destroy: destroy
     };
 

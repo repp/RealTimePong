@@ -32,6 +32,7 @@ var pongClient = (function() {
         socket.removeListener('game_found', onGameFound);
         socket.on('opponent_left', onOpponentLeft);
         isFirstPlayer = data.isFirstPlayer;
+        game.setFirstPlayer(isFirstPlayer);
         opponentPresent = true;
         hud.setOpponentName(data.opponent.name);
         setupGame(data.gameSpec);
@@ -58,18 +59,17 @@ var pongClient = (function() {
         document.addEventListener('keydown', keyDown);
         document.addEventListener('keyup', keyUp);
 
-        socket.on('update_positions', updatePositions);
+        socket.on('update_positions', game.updatePositions);
+        socket.on('update_scores', updateScores);
         socket.on('game_over', onGameOver);
         socket.emit('game_setup');
     }
 
-    function updatePositions(data) {
+    function updateScores(data) {
         if(isFirstPlayer) {
             hud.updateScore(data.player1_score, data.player2_score);
-            game.updateFirstPlayer(data);
         } else {
             hud.updateScore(data.player2_score, data.player1_score);
-            game.updateSecondPlayer(data);
         }
     }
 
@@ -101,7 +101,8 @@ var pongClient = (function() {
         hud.showMessages();
         this.document.removeEventListener('keydown', keyDown);
         this.document.removeEventListener('keyup', keyUp);
-        socket.removeListener('update_positions', updatePositions);
+        socket.removeListener('update_positions', game.updatePositions);
+        socket.removeListener('update_scores', updateScores);
     }
 
     function playAgain() {
