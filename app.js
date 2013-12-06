@@ -15,22 +15,22 @@ var app = require('express')()
         },
         paddle: {
           width: 10,
-          height: 100,
-          minSpeed: 7,
-          maxSpeed: 17,
-          acceleration: 1.1,
-          bounceFriction: 0.25,
-          slideFriction: 0.68
+          height: 90,
+          minSpeed: 8,
+          maxSpeed: 20,
+          acceleration: 1.15,
+          bounceFriction: 0.3,
+          slideFriction: 0.75
         },
         ball: {
-            diameter: 6,
+            diameter: 7,
             maxServeSpeed: 15,
-            minServeSpeed: 10,
-            acceleration: 1.05,
-            maxSpeed: 32
+            minServeSpeed: 13,
+            acceleration: 1.075,
+            maxSpeed: 24
         },
         game: {
-            serveDelay: 1500,
+            serveDelay: 2000,
             winningScore: 5,
             fps: 32
         }
@@ -113,7 +113,8 @@ var createBall = function () {
         START_Y = (gameSpec.field.height - diameter) / 2;
 
     function randomServe() {
-        this.speedX = spec.minServeSpeed + (spec.maxServeSpeed-spec.minServeSpeed)*Math.random();
+        var direction = Math.random() > 0.5 ? 1 : -1;
+        this.speedX = direction * spec.minServeSpeed + (spec.maxServeSpeed-spec.minServeSpeed)*Math.random();
         var maxSpeedY = (this.speedX*(gameSpec.field.height/2))/(gameSpec.field.width/2);
         this.speedY = -maxSpeedY + maxSpeedY*2*Math.random();
     }
@@ -135,9 +136,9 @@ var createBall = function () {
     }
 
     function bounceOff(paddle) {
-        this.speedX = -this.speedX;
-        this.speedY -= paddle.speed * gameSpec.paddle.bounceFriction;
-        this.x = paddle.x + (this.x-this.speedX > paddle.x ? -diameter : paddle.width) ;
+        this.speedX = Math.min(-this.speedX*spec.acceleration, spec.maxSpeed);
+        this.speedY = Math.min((this.speedY * spec.acceleration) - paddle.speed * gameSpec.paddle.bounceFriction, spec.maxSpeed);
+        this.x = paddle.x + (paddle.x === gameSpec.field.rightPaddleX ? -diameter : paddle.width + diameter);
     }
 
     function stop() {
