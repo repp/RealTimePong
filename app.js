@@ -267,7 +267,11 @@ var createPlayer = function (socket, name) {
 
     function destroyGame() {
         socket.emit('opponent_left');
+        try {
+            socket.removeListener('play_again', socket.currentGame.playAgainRequest);
+        } catch (e) {}
         socket.currentGame = null;
+        this.playAgain = false;
     }
 
     function reset() {

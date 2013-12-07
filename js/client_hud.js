@@ -80,8 +80,6 @@ var ClientHUD = function() {
     function onOpponentLeft() {
         clearScoreboard();
         $opponentName.html('');
-        //$opponentScore.html('');
-        //$playerScore.html('');
         $action.append('<br />' + opponentName + ' has left the game.');
         $playAgain.hide();
         $findNewOpponent.show();
