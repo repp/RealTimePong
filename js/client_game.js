@@ -1,4 +1,4 @@
-var ClientGame = function() {
+var ClientGame = function(sfxModule) {
     var stage,
         ball,
         ball_speed_x,
@@ -61,6 +61,9 @@ var ClientGame = function() {
     }
 
     function updatePositions(data) {
+        if(ballChangedDirections(data.ball_speed_x, data.ball_speed_y)) {
+            playHitSound();
+        }
         ball_speed_x = data.ball_speed_x;
         ball_speed_y = data.ball_speed_y;
         if(isFirstPlayer) {
@@ -68,6 +71,14 @@ var ClientGame = function() {
         } else {
             updateSecondPlayer(data);
         }
+    }
+
+    function ballChangedDirections(new_x_speed, new_y_speed) {
+        return Math.abs(new_x_speed + ball_speed_x) < Math.abs(new_x_speed) || Math.abs(new_y_speed + ball_speed_y) < Math.abs(new_y_speed);
+    }
+
+    function playHitSound() {
+        sfxModule.play(sfxModule.HIT_SOUND);
     }
 
     function updateFirstPlayer(data) {

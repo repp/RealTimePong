@@ -17,10 +17,10 @@ var app = require('express')()
           width: 10,
           height: 90,
           minSpeed: 8,
-          maxSpeed: 20,
+          maxSpeed: 18,
           acceleration: 1.15,
           bounceFriction: 0.3,
-          slideFriction: 0.75
+          slideFriction: 0.7
         },
         ball: {
             diameter: 7,
@@ -38,6 +38,7 @@ var app = require('express')()
 
 app.use("/css", express.static(__dirname + '/css'));
 app.use("/images", express.static(__dirname + '/images'));
+app.use("/sfx", express.static(__dirname + '/sfx'));
 app.use("/css/fonts", express.static(__dirname + '/css/fonts'));
 app.use("/js", express.static(__dirname + '/js'));
 app.use("/js/vendor_js", express.static(__dirname + '/js/vendor_js'));

@@ -4,7 +4,8 @@ var pongClient = (function() {
         isFirstPlayer,
         opponentPresent = false,
         hud = new ClientHUD(), // See client_hud.js
-        game = new ClientGame(); // See client_game.js
+        sfx = new ClientSFX(), // See client_sfx.js
+        game = new ClientGame(sfx); // See client_game.js
 
     function openConnection() {
         socket = io.connect(window.location.hostname);
@@ -55,6 +56,7 @@ var pongClient = (function() {
         hud.showPong();
         game.setup(spec);
         hud.hideMessages();
+        sfx.play(sfx.START_SOUND);
 
         document.addEventListener('keydown', keyDown);
         document.addEventListener('keyup', keyUp);
@@ -67,10 +69,19 @@ var pongClient = (function() {
 
     function updateScores(data) {
         game.onScore();
+        playScoreSound(data.player1_score, data.player2_score);
         if(isFirstPlayer) {
             hud.updateScore(data.player1_score, data.player2_score);
         } else {
             hud.updateScore(data.player2_score, data.player1_score);
+        }
+    }
+
+    function playScoreSound(newP1Score, newP2Score) {
+        if( (isFirstPlayer && newP1Score > hud.playerScore) || (!isFirstPlayer && newP2Score > hud.playerScore) ) {
+            sfx.play(sfx.START_SOUND);
+        } else {
+            sfx.play(sfx.SCORE_SOUND);
         }
     }
 

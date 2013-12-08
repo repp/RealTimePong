@@ -1,6 +1,8 @@
 var ClientHUD = function() {
     var playerName = '',
         opponentName = '',
+        playerScore = 0,
+        opponentScore = 0,
         $playerName,
         $opponentName,
         $playerScore,
@@ -104,6 +106,8 @@ var ClientHUD = function() {
 
     function updateScore(playerScore, opponentScore) {
         var i, j;
+        this.playerScore = playerScore;
+        this.opponentScore = opponentScore;
         for(i = 0; i <= playerScore; i++) {
             $('#player-score .'+i).addClass('active');
         }
@@ -132,9 +136,13 @@ var ClientHUD = function() {
 
     function clearScoreboard() {
         $scoreLights.removeClass('active');
+        this.playerScore = 0;
+        this.opponentScore = 0;
     }
 
     return {
+        playerScore: playerScore,
+        opponentScore: opponentScore,
         getPlayerName: getPlayerName,
         init: findDOMElements,
         addButtonListeners: addButtonListeners,
