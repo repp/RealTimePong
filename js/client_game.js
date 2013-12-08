@@ -7,6 +7,7 @@ var ClientGame = function() {
         opponentPaddle,
         isFirstPlayer,
         smoothingFactor = 3,
+        updateFactor,
         smoothingInterval;
 
     function setFirstPlayer(fp) {
@@ -36,6 +37,7 @@ var ClientGame = function() {
         var innerPlayerPaddle = new createjs.Shape();
             innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddle.width-8, spec.paddle.height-8, spec.paddle.width/2);
             innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
+
         playerPaddle.x = spec.field.rightPaddleX;
         playerPaddle.addChild(outerPlayerPaddle);
         playerPaddle.addChild(innerPlayerPaddle);
@@ -84,6 +86,11 @@ var ClientGame = function() {
         stage.update();
     }
 
+    function onScore() {
+        ball_speed_x = 0;
+        ball_speed_y = 0;
+    }
+
     function destroy() {
         stopSmoothing();
         if(stage !== null) {
@@ -97,16 +104,18 @@ var ClientGame = function() {
     }
 
     function startSmoothing(fps) {
-        smoothingInterval = setInterval(smooth, fps/smoothingFactor);
+        var rounded = Math.round(fps/smoothingFactor);
+        updateFactor = fps/rounded;
+        smoothingInterval = setInterval(smooth, rounded);
     }
 
     function smooth() {
         if(isFirstPlayer) {
-            ball.x += ball_speed_x/smoothingFactor;
+            ball.x += ball_speed_x/updateFactor;
         } else {
-            ball.x -= ball_speed_x/smoothingFactor;
+            ball.x -= ball_speed_x/updateFactor;
         }
-        ball.y += ball_speed_y/smoothingFactor;
+        ball.y += ball_speed_y/updateFactor;
         stage.update();
     }
 
@@ -119,6 +128,7 @@ var ClientGame = function() {
     return {
         setFirstPlayer: setFirstPlayer,
         setup: setup,
+        onScore: onScore,
         updatePositions: updatePositions,
         destroy: destroy
     };

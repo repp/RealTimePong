@@ -66,6 +66,7 @@ var pongClient = (function() {
     }
 
     function updateScores(data) {
+        game.onScore();
         if(isFirstPlayer) {
             hud.updateScore(data.player1_score, data.player2_score);
         } else {

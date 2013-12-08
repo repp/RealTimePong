@@ -24,15 +24,15 @@ var app = require('express')()
         },
         ball: {
             diameter: 7,
-            maxServeSpeed: 15,
-            minServeSpeed: 13,
-            acceleration: 1.075,
-            maxSpeed: 24
+            maxServeSpeed: 12,
+            minServeSpeed: 11,
+            acceleration: 1.08,
+            maxSpeed: 18
         },
         game: {
-            serveDelay: 2000,
+            serveDelay: 1500,
             winningScore: 5,
-            fps: 32
+            fps: 24 // ~ 42 fps (1000/24)
         }
     };
 
@@ -144,7 +144,7 @@ var createBall = function () {
     function stop() {
         this.speedX = 0;
         this.speedY = 0;
-        this.x = Math.min(Math.max(this.x, diameter), gameSpec.field.width - diameter);
+        this.reset();
     }
 
     function reset() {
@@ -336,7 +336,6 @@ var createGame = function (player1, player2, spec) {
 
     function serveBall() {
         clearTimers();
-        positionPaddles();
         ball.randomServe();
         interval = setInterval(onEnterFrame, spec.game.fps);
     }
@@ -357,34 +356,32 @@ var createGame = function (player1, player2, spec) {
             ball.bounceOff(player1.paddle);
         } else if(ball.hasCollidedWith(player2.paddle)) { //Check for collisions with paddles
             ball.bounceOff(player2.paddle);
-        } else if (ball.x + spec.ball.diameter > spec.field.width) {    //scoring
-            ball.stop();
-            player2.score++;
-            updateScores();
-            if (player2.score === spec.game.winningScore) {
-                updateClients();
-                player2.socket.winStreak++;
-                gameOver();
-                return;
-            } else {
-                serveTimeout = setTimeout(serveBall, gameSpec.game.serveDelay);
-            }
+        } else if (ball.x > spec.field.width) {           //scoring
+            onScore(player2);
+            return;
         } else if (ball.x < 0) {                          // scoring
-            ball.stop();
-            player1.score++;
-            updateScores();
-            if (player1.score === spec.game.winningScore) {
-                updateClients();
-                player1.socket.winStreak++;
-                gameOver();
-                return;
-            } else {
-                serveTimeout = setTimeout(serveBall, gameSpec.game.serveDelay);
-            }
+            onScore(player1);
+            return;
         }
 
-        //Broadcast game state
         updateClients();
+    }
+
+    function onScore(scoringPlayer) {
+        ball.stop();
+        scoringPlayer.score++;
+        updateScores();
+        if (scoringPlayer.score === spec.game.winningScore) {
+            onPlayerWon(scoringPlayer);
+        } else {
+            serveTimeout = setTimeout(serveBall, gameSpec.game.serveDelay/2);
+        }
+    }
+
+    function onPlayerWon(winningPlayer) {
+        updateClients();
+        winningPlayer.socket.winStreak++;
+        gameOver();
     }
 
     function updateClients() {
