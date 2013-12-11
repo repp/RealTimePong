@@ -9,6 +9,9 @@ var ClientHUD = function() {
         $opponentScore,
         $scoreLights,
         $connectionCount,
+        $sfxToggle,
+        $sfxOn,
+        $sfxOff,
         $playForm,
         $findNewOpponent,
         $findOpponentAnim,
@@ -19,6 +22,11 @@ var ClientHUD = function() {
 
     function findDOMElements() {
         $connectionCount = $('span#connection-count');
+
+        $sfxToggle = $('#sfx-toggle');
+        $sfxOn = $sfxToggle.find('.on');
+        $sfxOff = $sfxToggle.find('.off');
+
         $playForm = $('form#login');
         $findNewOpponent = $('#find-new-opponent');
         $playAgain = $('#play-again');
@@ -35,14 +43,28 @@ var ClientHUD = function() {
         $findOpponentAnim.hide();
     }
 
-    function addButtonListeners(onFindGame, onPlayAgain) {
+    function addButtonListeners(onFindGame, onPlayAgain, toggleSFX) {
         $playForm.submit(onFindGame);
         $findNewOpponent.click(onFindGame);
         $playAgain.click(onPlayAgain);
+        $sfxToggle.click(function() {
+            toggleSFXButton();
+            toggleSFX();
+        });
     }
 
     function updateConnectionCount(data) {
         $connectionCount.html(data.count)
+    }
+
+    function toggleSFXButton() {
+        if($sfxOn.hasClass('active')){
+            $sfxOn.removeClass('active');
+            $sfxOff.addClass('active');
+        } else {
+            $sfxOn.addClass('active');
+            $sfxOff.removeClass('active');
+        }
     }
 
     function showFindOpponentAnimation() {

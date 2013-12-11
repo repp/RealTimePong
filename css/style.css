@@ -100,17 +100,29 @@ header div.streak {
     margin-top: 12px;
 }
 
-header div.connections, header div.streak {
-    font-size: 15px;
+header div.connections, header div.streak, header div#sfx-toggle {
     clear: right;
     float: right;
-    color: #e5e5e5;
+    color: #D5D5D5;
     font-weight: bold;
     letter-spacing: 0;
-    margin-top: 14px;
+    margin-top: 6px;
 }
 header div.connections span, header div.streak span {
     font-weight: normal;
+}
+
+header div.connections #connection-count, header div#sfx-toggle span.active {
+    color: #FFF;
+}
+
+header div#sfx-toggle {
+    cursor: pointer;
+}
+
+header div#sfx-toggle span {
+    font-size: 15px;
+    color: #999;
 }
 
 div#game {

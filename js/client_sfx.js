@@ -4,6 +4,7 @@ var ClientSFX = function() {
         HIT_SOUND = 'HIT_SOUND',
         SCORE_SOUND = 'SCORE_SOUND',
         preLoader,
+        muted = false;
         library = [
             {src:"/sfx/beep.mp3|/sfx/beep.ogg", id:START_SOUND},
             {src:"/sfx/peep.mp3|/sfx/peep.ogg", id:SCORE_SOUND},
@@ -38,14 +39,21 @@ var ClientSFX = function() {
         preLoader.loadFile(item);
     }
 
+    function toggle() {
+        muted = !muted;
+    }
+
     function play(sound_name) {
-        createjs.SoundJS.play(sound_name);
+        if(!muted) {
+            createjs.SoundJS.play(sound_name);
+        }
     }
 
     return {
         START_SOUND: START_SOUND,
         HIT_SOUND: HIT_SOUND,
         SCORE_SOUND: SCORE_SOUND,
+        toggle: toggle,
         play: play
     }
 

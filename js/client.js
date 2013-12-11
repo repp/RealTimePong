@@ -123,10 +123,14 @@ var pongClient = (function() {
         socket.emit('play_again');
     }
 
+    function toggleSFX() {
+        sfx.toggle();
+    }
+
     return {
         init: function() {
             hud.init();
-            hud.addButtonListeners(login, playAgain);
+            hud.addButtonListeners(login, playAgain, toggleSFX);
             openConnection();
         }
     };
