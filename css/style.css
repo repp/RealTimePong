@@ -118,6 +118,7 @@ header div.connections #connection-count, header div#sfx-toggle span.active {
 
 header div#sfx-toggle {
     cursor: pointer;
+    margin-top: 4px;
 }
 
 header div#sfx-toggle span {

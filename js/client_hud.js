@@ -82,11 +82,11 @@ var ClientHUD = function() {
     function setPlayerName() {
         var $nameInput = $('#name');
         playerName = $nameInput.val();
-        if(playerName.length !== 0) {
+        if(playerName.length >= 2 && playerName.length <= 16) {
             $playerName.html(playerName);
             return true;
         } else {
-            alert('Please enter your name.');
+            alert('Please enter a name between 2 and 16 characters.');
             $nameInput.focus();
             return false;
         }

@@ -1,8 +1,10 @@
 var ClientGame = function(sfxModule) {
     var stage,
         ball,
+        tail,
         ball_speed_x,
         ball_speed_y,
+        maxSpeed,
         playerPaddle,
         opponentPaddle,
         isFirstPlayer,
@@ -17,6 +19,8 @@ var ClientGame = function(sfxModule) {
     function setup(spec) {
         stage = new createjs.Stage("pong");
 
+        maxSpeed = Math.sqrt(spec.ball.maxSpeed*spec.ball.maxSpeed*2);
+
         //Ball
         ball = new createjs.Container();
         var outterBall = new createjs.Shape();
@@ -25,8 +29,13 @@ var ClientGame = function(sfxModule) {
         var innerBall = new createjs.Shape();
             innerBall.graphics.beginFill("#c4f3fc").drawCircle(1, 1, spec.ball.diameter/3);
             innerBall.shadow = new createjs.Shadow("#ccf4fc", 0, 0, 2);
+        tail = new createjs.Bitmap('images/tail.png');
+               tail.y = -14;
+               tail.x = -48;
+            //tail.graphics.beginFill('#FF0000').drawRect(0,-3, -50, 6);
         ball.addChild(outterBall);
         ball.addChild(innerBall);
+        ball.addChild(tail);
         stage.addChild(ball);
 
         //Player Paddle
@@ -84,6 +93,7 @@ var ClientGame = function(sfxModule) {
     function updateFirstPlayer(data) {
         ball.x = data.ball_x;
         ball.y = data.ball_y;
+        updateTail(ball_speed_x, ball_speed_y);
         playerPaddle.y = data.player1_pos;
         opponentPaddle.y = data.player2_pos;
         stage.update();
@@ -92,9 +102,24 @@ var ClientGame = function(sfxModule) {
     function updateSecondPlayer(data) {
         ball.x = 800 - data.ball_x;
         ball.y = data.ball_y;
+        updateTail(-ball_speed_x, ball_speed_y);
         playerPaddle.y = data.player2_pos;
         opponentPaddle.y = data.player1_pos;
         stage.update();
+    }
+
+    function updateTail(x_speed, y_speed) {
+        ball.rotation = getRotation(x_speed, y_speed);
+        var speedUsage = Math.sqrt(x_speed*x_speed + y_speed*y_speed) / maxSpeed;
+        tail.alpha = 0 + speedUsage*0.65;
+    }
+
+    function getRotation(x_speed, y_speed) {
+        return radiansToDegrees( Math.atan2(y_speed, x_speed) );
+    }
+
+    function radiansToDegrees(angle) {
+        return angle * (180 / Math.PI);
     }
 
     function onScore() {
