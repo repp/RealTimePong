@@ -110,8 +110,7 @@ var ClientGame = function(sfxModule) {
 
     function updateTail(x_speed, y_speed) {
         ball.rotation = getRotation(x_speed, y_speed);
-        var speedUsage = Math.sqrt(x_speed*x_speed + y_speed*y_speed) / maxSpeed;
-        tail.alpha = 0 + speedUsage*0.65;
+        tail.alpha = Math.sqrt(x_speed*x_speed + y_speed*y_speed) / maxSpeed;
     }
 
     function getRotation(x_speed, y_speed) {
