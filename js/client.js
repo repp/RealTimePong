@@ -87,8 +87,10 @@ var pongClient = (function() {
 
     function keyDown(e) {
         if(e.keyCode === 87 || e.keyCode === 38) {
+            game.hideUpInstruction();
             socket.emit('key_down', {direction: 'up'});
         } else if(e.keyCode === 83 || e.keyCode === 40) {
+            game.hideDownInstruction();
             socket.emit('key_down', {direction: 'down'});
         }
     }

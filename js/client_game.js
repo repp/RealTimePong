@@ -1,5 +1,9 @@
 var ClientGame = function(sfxModule) {
     var stage,
+        upInstruction,
+        downInstruction,
+        pressedUp,
+        pressedDown,
         ball,
         tail,
         ball_speed_x,
@@ -22,51 +26,82 @@ var ClientGame = function(sfxModule) {
         maxSpeed = Math.sqrt(spec.ball.maxSpeed*spec.ball.maxSpeed*2);
 
         //Ball
-        ball = new createjs.Container();
-        var outterBall = new createjs.Shape();
-            outterBall.graphics.beginFill("#89edfd").drawCircle(0, 0, spec.ball.diameter);
-            outterBall.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
-        var innerBall = new createjs.Shape();
-            innerBall.graphics.beginFill("#c4f3fc").drawCircle(1, 1, spec.ball.diameter/3);
-            innerBall.shadow = new createjs.Shadow("#ccf4fc", 0, 0, 2);
-        tail = new createjs.Bitmap('images/tail.png');
-               tail.y = -14;
-               tail.x = -48;
-            //tail.graphics.beginFill('#FF0000').drawRect(0,-3, -50, 6);
-        ball.addChild(outterBall);
-        ball.addChild(innerBall);
-        ball.addChild(tail);
+        ball = createBall(spec.ball);
         stage.addChild(ball);
 
         //Player Paddle
-        playerPaddle = new createjs.Container();
-        var outerPlayerPaddle = new createjs.Shape();
-            outerPlayerPaddle.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddle.width, spec.paddle.height, spec.paddle.width/2);
-            outerPlayerPaddle.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
-        var innerPlayerPaddle = new createjs.Shape();
-            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddle.width-8, spec.paddle.height-8, spec.paddle.width/2);
-            innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
-
+        playerPaddle = createPaddle(spec.paddle);
         playerPaddle.x = spec.field.rightPaddleX;
-        playerPaddle.addChild(outerPlayerPaddle);
-        playerPaddle.addChild(innerPlayerPaddle);
         stage.addChild(playerPaddle);
 
         //Opponent Paddle
-        opponentPaddle = new createjs.Container();
-        var outerPlayerPaddle2 = new createjs.Shape();
-            outerPlayerPaddle2.graphics.beginFill("#89edfd").drawRoundRect(0, 0, spec.paddle.width, spec.paddle.height, spec.paddle.width/2);
-            outerPlayerPaddle2.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
-        var innerPlayerPaddle2 = new createjs.Shape();
-            innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, spec.paddle.width-8, spec.paddle.height-8, spec.paddle.width/2);
-            innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
+        opponentPaddle = createPaddle(spec.paddle);
         opponentPaddle.x = spec.field.leftPaddleX;
-        opponentPaddle.addChild(outerPlayerPaddle2);
-        opponentPaddle.addChild(innerPlayerPaddle2);
         stage.addChild(opponentPaddle);
 
+        showInstructions(spec);
         stage.update();
         startSmoothing(spec.game.fps);
+    }
+
+    function createBall(ballSpec) {
+        var ball = new createjs.Container();
+
+        var outterBall = new createjs.Shape();
+        outterBall.graphics.beginFill("#89edfd").drawCircle(0, 0, ballSpec.diameter);
+        outterBall.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
+
+        var innerBall = new createjs.Shape();
+        innerBall.graphics.beginFill("#c4f3fc").drawCircle(0.333, 0.333, ballSpec.diameter/3);
+        innerBall.shadow = new createjs.Shadow("#ccf4fc", 0, 0, 2);
+
+        tail = new createjs.Bitmap('images/tail.png');
+        tail.y = -14;
+        tail.x = -48;
+
+        ball.addChild(outterBall);
+        ball.addChild(innerBall);
+        ball.addChild(tail);
+        return ball;
+    }
+
+    function createPaddle(paddleSpec) {
+        var paddle = new createjs.Container(),
+            outerPlayerPaddle = new createjs.Shape(),
+            innerPlayerPaddle = new createjs.Shape();
+        outerPlayerPaddle.graphics.beginFill("#89edfd").drawRoundRect(0, 0, paddleSpec.width, paddleSpec.height, paddleSpec.width/2);
+        outerPlayerPaddle.shadow = new createjs.Shadow("#2b72b4", 0, 0, 22);
+
+        innerPlayerPaddle.graphics.beginFill("#aef2fe").drawRoundRect(4, 4, paddleSpec.width-8, paddleSpec.height-8, paddleSpec.width/2);
+        innerPlayerPaddle.shadow = new createjs.Shadow("#acf2fe", 0, 0, 4);
+
+        paddle.addChild(outerPlayerPaddle);
+        paddle.addChild(innerPlayerPaddle);
+        return paddle;
+    }
+
+    function showInstructions(spec) {
+        upInstruction = new createjs.Bitmap('images/up_instructions.png');
+        downInstruction = new createjs.Bitmap('images/down_instructions.png');
+        upInstruction.x = downInstruction.x = spec.field.width - 80;
+        upInstruction.y = 35;
+        downInstruction.y = spec.field.height - 135;
+        if(!pressedUp) stage.addChild(upInstruction);
+        if(!pressedDown) stage.addChild(downInstruction);
+    }
+
+    function hideUpInstruction() {
+        if(!pressedUp) {
+            pressedUp = true;
+            stage.removeChild(upInstruction);
+        }
+    }
+
+    function hideDownInstruction() {
+        if(!pressedDown) {
+            pressedDown = true;
+            stage.removeChild(downInstruction);
+        }
     }
 
     function updatePositions(data) {
@@ -163,6 +198,8 @@ var ClientGame = function(sfxModule) {
     return {
         setFirstPlayer: setFirstPlayer,
         setup: setup,
+        hideUpInstruction: hideUpInstruction,
+        hideDownInstruction: hideDownInstruction,
         onScore: onScore,
         updatePositions: updatePositions,
         destroy: destroy

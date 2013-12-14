@@ -348,10 +348,10 @@ var createGame = function (player1, player2, spec) {
     }
 
     function onEnterFrame() {
-        ball.onEnterFrame();
-
         player1.paddle.onEnterFrame();
         player2.paddle.onEnterFrame();
+
+        ball.onEnterFrame();
 
         if(ball.hasCollidedWith(player1.paddle)) {        //Check for collisions with paddles
             ball.bounceOff(player1.paddle);
