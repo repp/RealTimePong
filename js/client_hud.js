@@ -3,6 +3,7 @@ var ClientHUD = function() {
         opponentName = '',
         playerScore = 0,
         opponentScore = 0,
+        $logo,
         $playerName,
         $opponentName,
         $playerScore,
@@ -20,7 +21,15 @@ var ClientHUD = function() {
         $game,
         $pong;
 
+
+
+    function init() {
+        findDOMElements();
+        glowLogo();
+    }
+
     function findDOMElements() {
+        $logo = $('header h1');
         $connectionCount = $('span#connection-count');
 
         $sfxToggle = $('#sfx-toggle');
@@ -41,6 +50,10 @@ var ClientHUD = function() {
         $scoreLights = $('.score-light');
         $findOpponentAnim = $('#loading-animation');
         $findOpponentAnim.hide();
+    }
+
+    function glowLogo() {
+        $logo.addClass('glowing');
     }
 
     function addButtonListeners(onFindGame, onPlayAgain, toggleSFX) {
@@ -166,7 +179,7 @@ var ClientHUD = function() {
         playerScore: playerScore,
         opponentScore: opponentScore,
         getPlayerName: getPlayerName,
-        init: findDOMElements,
+        init: init,
         addButtonListeners: addButtonListeners,
         showFindOpponentAnimation: showFindOpponentAnimation,
         setPlayerName: setPlayerName,

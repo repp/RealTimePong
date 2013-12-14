@@ -1,10 +1,10 @@
 @font-face {
-    font-family: 'arista_2.0_lightregular';
-    src: url('fonts/arista2.0_light-webfont.eot');
-    src: url('fonts/arista2.0_light-webfont.eot?#iefix') format('embedded-opentype'),
-    url('fonts/arista2.0_light-webfont.woff') format('woff'),
-    url('fonts/arista2.0_light-webfont.ttf') format('truetype'),
-    url('fonts/arista2.0_light-webfont.svg#arista_2.0_lightregular') format('svg');
+    font-family: 'prismaregular';
+    src: url('fonts/prisma-webfont.eot');
+    src: url('fonts/prisma-webfont.eot?#iefix') format('embedded-opentype'),
+    url('fonts/prisma-webfont.woff') format('woff'),
+    url('fonts/prisma-webfont.ttf') format('truetype'),
+    url('fonts/prisma-webfont.svg#prismaregular') format('svg');
     font-weight: normal;
     font-style: normal;
 
@@ -88,12 +88,21 @@ header {
 }
 
 header h1 {
+    color: #ccc;
     display: inline-block;
-    font-family: 'arista_2.0_lightregular';
+    font-family: 'prismaregular';
     margin-bottom: 0;
     margin-top: -4px;
     font-weight: normal;
-    font-size: 52px;
+    font-size: 54px;
+    transition: all 2s;
+}
+
+header h1.glowing {
+    color: #FFF;
+    text-shadow: 0 0 50px #e43053,
+             1px 1px 3px #e43053,
+            -1px -1px 3px #e43053;
 }
 
 header div.streak {
