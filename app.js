@@ -37,12 +37,12 @@ var app = require('express')()
     };
 
 app.use("/assets", express.static(__dirname + '/assets'));
-app.use("/assets/css", express.static(__dirname + '/assets/css'));
-app.use("/assets/images", express.static(__dirname + '/assets/images'));
-app.use("/assets/sfx", express.static(__dirname + '/assets/sfx'));
-app.use("/assets/css/fonts", express.static(__dirname + '/assets/css/fonts'));
-app.use("/assets/js", express.static(__dirname + '/assets/js'));
-app.use("/assets/js/vendor_js", express.static(__dirname + '/assets/js/vendor_js'));
+//app.use("/assets/css", express.static(__dirname + '/assets/css'));
+//app.use("/assets/images", express.static(__dirname + '/assets/images'));
+//app.use("/assets/sfx", express.static(__dirname + '/assets/sfx'));
+//app.use("/assets/css/fonts", express.static(__dirname + '/assets/css/fonts'));
+//app.use("/assets/js", express.static(__dirname + '/assets/js'));
+//app.use("/assets/js/vendor_js", express.static(__dirname + '/assets/js/vendor_js'));
 app.use("/views", express.static(__dirname + '/views'));
 
 app.use(express.favicon(__dirname + '/images/favicon.ico'));
