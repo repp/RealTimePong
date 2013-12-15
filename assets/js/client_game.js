@@ -55,7 +55,7 @@ var ClientGame = function(sfxModule) {
         innerBall.graphics.beginFill("#c4f3fc").drawCircle(0.333, 0.333, ballSpec.diameter/3);
         innerBall.shadow = new createjs.Shadow("#ccf4fc", 0, 0, 2);
 
-        tail = new createjs.Bitmap('images/tail.png');
+        tail = new createjs.Bitmap('/assets/images/tail.png');
         tail.y = -14;
         tail.x = -48;
 
@@ -81,8 +81,8 @@ var ClientGame = function(sfxModule) {
     }
 
     function showInstructions(spec) {
-        upInstruction = new createjs.Bitmap('images/up_instructions.png');
-        downInstruction = new createjs.Bitmap('images/down_instructions.png');
+        upInstruction = new createjs.Bitmap('/assets/images/up_instructions.png');
+        downInstruction = new createjs.Bitmap('/assets/images/down_instructions.png');
         upInstruction.x = downInstruction.x = spec.field.width - 80;
         upInstruction.y = 35;
         downInstruction.y = spec.field.height - 135;

@@ -6,9 +6,9 @@ var ClientSFX = function() {
         preLoader,
         muted = false;
         library = [
-            {src:"/sfx/beep.mp3|/sfx/beep.ogg", id:START_SOUND},
-            {src:"/sfx/peep.mp3|/sfx/peep.ogg", id:SCORE_SOUND},
-            {src:"/sfx/plop.mp3|/sfx/plop.ogg", id:HIT_SOUND}
+            {src:"/assets/sfx/beep.mp3|/assets/sfx/beep.ogg", id:START_SOUND},
+            {src:"/assets/sfx/peep.mp3|/assets/sfx/peep.ogg", id:SCORE_SOUND},
+            {src:"/assets/sfx/plop.mp3|/assets/sfx/plop.ogg", id:HIT_SOUND}
         ];
 
     init();

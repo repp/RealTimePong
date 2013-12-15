@@ -1,7 +1,7 @@
 @font-face {
     font-family: 'prismaregular';
     src: url('fonts/prisma-webfont.eot');
-    src: url('fonts/prisma-webfont.eot?#iefix') format('embedded-opentype'),
+    src: url('fonts/prisma-webfont.eot') format('embedded-opentype'),
     url('fonts/prisma-webfont.woff') format('woff'),
     url('fonts/prisma-webfont.ttf') format('truetype'),
     url('fonts/prisma-webfont.svg#prismaregular') format('svg');
@@ -13,7 +13,7 @@
 @font-face {
     font-family: 'champagne__limousinesregular';
     src: url('fonts/champagne__limousines-webfont.eot');
-    src: url('fonts/champagne__limousines-webfont.eot?#iefix') format('embedded-opentype'),
+    src: url('fonts/champagne__limousines-webfont.eot') format('embedded-opentype'),
     url('fonts/champagne__limousines-webfont.woff') format('woff'),
     url('fonts/champagne__limousines-webfont.ttf') format('truetype'),
     url('fonts/champagne__limousines-webfont.svg#champagne__limousinesregular') format('svg');
