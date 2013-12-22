@@ -5,6 +5,7 @@ exports.createGame = function (player1, player2, spec) {
     var game,
         setup = false,
         interval = null,
+        updateInterval = null,
         serveTimeout = null,
         ball = Ball.createBall(spec);
 
@@ -30,7 +31,9 @@ exports.createGame = function (player1, player2, spec) {
     function serveBall() {
         clearTimers();
         ball.randomServe();
-        interval = setInterval(onEnterFrame, spec.game.fps);
+        var enterFrameInterval = Math.round(1000/spec.game.fps);
+        interval = setInterval(onEnterFrame, enterFrameInterval); // update frequency = millis in a sec / fps
+        updateInterval = setInterval(updateClients, spec.game.updateInterval);
     }
 
     function positionPaddles() {
@@ -51,13 +54,9 @@ exports.createGame = function (player1, player2, spec) {
             ball.bounceOff(player2.paddle);
         } else if (ball.x > spec.field.width) {           //scoring
             onScore(player2);
-            return;
         } else if (ball.x < 0) {                          // scoring
             onScore(player1);
-            return;
         }
-
-        updateClients();
     }
 
     function onScore(scoringPlayer) {
@@ -135,6 +134,9 @@ exports.createGame = function (player1, player2, spec) {
             clearInterval(interval);
         } catch (e) {
         }
+        try {
+            clearInterval(updateInterval);
+        } catch (e) {}
         try {
             clearTimeout(serveTimeout);
         } catch (e) {

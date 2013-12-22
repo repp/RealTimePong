@@ -12,8 +12,6 @@ var ClientGame = function(sfxModule) {
         playerPaddle,
         opponentPaddle,
         isFirstPlayer,
-        smoothingFactor = 3,
-        updateFactor,
         smoothingInterval;
 
     function setFirstPlayer(fp) {
@@ -129,8 +127,10 @@ var ClientGame = function(sfxModule) {
         ball.x = data.ball_x;
         ball.y = data.ball_y;
         updateTail(ball_speed_x, ball_speed_y);
-        playerPaddle.y = data.player1_pos;
-        opponentPaddle.y = data.player2_pos;
+        createjs.Tween.get(playerPaddle).to({y:data.player1_pos}, 49 );
+        createjs.Tween.get(opponentPaddle).to({y:data.player2_pos}, 49 );
+       // playerPaddle.y = data.player1_pos;
+//        opponentPaddle.y = data.player2_pos;
         stage.update();
     }
 
@@ -174,18 +174,17 @@ var ClientGame = function(sfxModule) {
     }
 
     function startSmoothing(fps) {
-        var rounded = Math.round(fps/smoothingFactor);
-        updateFactor = fps/rounded;
+        var rounded = Math.round(1000/fps);
         smoothingInterval = setInterval(smooth, rounded);
     }
 
     function smooth() {
         if(isFirstPlayer) {
-            ball.x += ball_speed_x/updateFactor;
+            ball.x += ball_speed_x;
         } else {
-            ball.x -= ball_speed_x/updateFactor;
+            ball.x -= ball_speed_x;
         }
-        ball.y += ball_speed_y/updateFactor;
+        ball.y += ball_speed_y;
         stage.update();
     }
 

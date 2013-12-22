@@ -9,23 +9,24 @@ exports.load = function() {
       paddle:{
           width:10,
           height:90,
-          minSpeed:8,
-          maxSpeed:18,
+          minSpeed:5,
+          maxSpeed:12,
           acceleration:1.15,
           bounceFriction:0.3,
           slideFriction:0.7
       },
       ball:{
           diameter:7,
-          maxServeSpeed:12,
-          minServeSpeed:11,
+          maxServeSpeed:8,
+          minServeSpeed:7,
           acceleration:1.08,
-          maxSpeed:18
+          maxSpeed:12
       },
       game:{
           serveDelay:1500,
           winningScore:5,
-          fps:24 // ~ 42 fps (1000/24)
+          updateInterval: 65,
+          fps:60
       }
   };
 };
