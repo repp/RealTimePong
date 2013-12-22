@@ -1,9 +1,14 @@
 var ClientGame = function(sfxModule) {
     var stage,
+        gameSpec,
         upInstruction,
         downInstruction,
         pressedUp,
         pressedDown,
+        keyDown,
+        playerDirection,
+        playerSpeed,
+        MAX_PADDLE_Y,
         ball,
         tail,
         ball_speed_x,
@@ -12,13 +17,16 @@ var ClientGame = function(sfxModule) {
         playerPaddle,
         opponentPaddle,
         isFirstPlayer,
-        smoothingInterval;
+        smoothingInterval,
+        paddleTweenDuration;
 
     function setFirstPlayer(fp) {
         isFirstPlayer = fp;
     }
 
     function setup(spec) {
+        gameSpec = spec;
+        MAX_PADDLE_Y = gameSpec.field.height - gameSpec.paddle.height;
         stage = new createjs.Stage("pong");
 
         maxSpeed = Math.sqrt(spec.ball.maxSpeed*spec.ball.maxSpeed*2);
@@ -26,6 +34,8 @@ var ClientGame = function(sfxModule) {
         //Ball
         ball = createBall(spec.ball);
         stage.addChild(ball);
+
+        paddleTweenDuration = spec.game.updateInterval / 2;
 
         //Player Paddle
         playerPaddle = createPaddle(spec.paddle);
@@ -127,10 +137,9 @@ var ClientGame = function(sfxModule) {
         ball.x = data.ball_x;
         ball.y = data.ball_y;
         updateTail(ball_speed_x, ball_speed_y);
-        createjs.Tween.get(playerPaddle).to({y:data.player1_pos}, 49 );
-        createjs.Tween.get(opponentPaddle).to({y:data.player2_pos}, 49 );
-       // playerPaddle.y = data.player1_pos;
-//        opponentPaddle.y = data.player2_pos;
+        playerPaddle.y = data.player1_pos;
+        opponentPaddle.y = data.player2_pos;
+        playerSpeed = data.player1_speed;
         stage.update();
     }
 
@@ -140,6 +149,7 @@ var ClientGame = function(sfxModule) {
         updateTail(-ball_speed_x, ball_speed_y);
         playerPaddle.y = data.player2_pos;
         opponentPaddle.y = data.player1_pos;
+        playerSpeed = data.player2_speed;
         stage.update();
     }
 
@@ -159,6 +169,40 @@ var ClientGame = function(sfxModule) {
     function onScore() {
         ball_speed_x = 0;
         ball_speed_y = 0;
+    }
+
+    function onKeyDown(direction) {
+        keyDown = true;
+        playerDirection = direction;
+        if(direction === 'UP') {
+            hideUpInstruction();
+        } else {
+            hideDownInstruction();
+        }
+    }
+
+    function onKeyUp(direction) {
+        keyDown = false;
+        playerDirection = null;
+    }
+
+    function movePlayerPaddle() {
+        if (keyDown) {
+            if (playerDirection === 'UP') {
+                playerSpeed = Math.max(Math.min(playerSpeed * gameSpec.paddle.acceleration, -gameSpec.paddle.minSpeed), -gameSpec.paddle.maxSpeed);
+            } else if (playerDirection === 'DOWN') {
+                playerSpeed = Math.min(Math.max(playerSpeed * gameSpec.paddle.acceleration, gameSpec.paddle.minSpeed), gameSpec.paddle.maxSpeed);
+            }
+        } else if (playerSpeed !== 0) {
+            slideToAStop();
+        }
+        // Ensure we never go off either edge.
+        playerPaddle.y = Math.max(Math.min(playerPaddle.y + playerSpeed, MAX_PADDLE_Y), 0);
+    }
+
+    function slideToAStop() {
+        playerSpeed = playerSpeed * gameSpec.paddle.slideFriction;
+        if (Math.abs(playerSpeed) < 0.25) playerSpeed = 0;
     }
 
     function destroy() {
@@ -185,6 +229,7 @@ var ClientGame = function(sfxModule) {
             ball.x -= ball_speed_x;
         }
         ball.y += ball_speed_y;
+        movePlayerPaddle();
         stage.update();
     }
 
@@ -197,8 +242,8 @@ var ClientGame = function(sfxModule) {
     return {
         setFirstPlayer: setFirstPlayer,
         setup: setup,
-        hideUpInstruction: hideUpInstruction,
-        hideDownInstruction: hideDownInstruction,
+        onKeyDown: onKeyDown,
+        onKeyUp: onKeyUp,
         onScore: onScore,
         updatePositions: updatePositions,
         destroy: destroy

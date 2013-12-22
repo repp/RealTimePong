@@ -25,7 +25,7 @@ exports.load = function() {
       game:{
           serveDelay:1500,
           winningScore:5,
-          updateInterval: 65,
+          updateInterval: 100,
           fps:60
       }
   };

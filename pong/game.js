@@ -83,7 +83,9 @@ exports.createGame = function (player1, player2, spec) {
             ball_speed_x:ball.speedX,
             ball_speed_y:ball.speedY,
             player1_pos:Math.round(player1.paddle.y),
-            player2_pos:Math.round(player2.paddle.y)
+            player2_pos:Math.round(player2.paddle.y),
+            player1_speed: player1.paddle.speed,
+            player2_speed: player2.paddle.speed
         };
         player1.updateClient(updateData);
         player2.updateClient(updateData);
