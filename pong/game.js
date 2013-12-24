@@ -5,6 +5,7 @@ exports.createGame = function (player1, player2, spec) {
     var game,
         setup = false,
         interval = null,
+        enterFrameInterval = Math.round(1000/spec.game.fps),
         updateInterval = null,
         serveTimeout = null,
         ball = Ball.createBall(spec);
@@ -23,15 +24,17 @@ exports.createGame = function (player1, player2, spec) {
     }
 
     function firstServe() {
+        clearTimers();
         positionPaddles();
         updateClients();
+        //Solves jump at the begining!
+        interval = setInterval(onEnterFrame, enterFrameInterval); // update frequency = millis in a sec / fps
         setTimeout(serveBall, spec.game.serveDelay);
     }
 
     function serveBall() {
         clearTimers();
         ball.randomServe();
-        var enterFrameInterval = Math.round(1000/spec.game.fps);
         interval = setInterval(onEnterFrame, enterFrameInterval); // update frequency = millis in a sec / fps
         updateInterval = setInterval(updateClients, spec.game.updateInterval);
     }
@@ -134,15 +137,13 @@ exports.createGame = function (player1, player2, spec) {
     function clearTimers() {
         try {
             clearInterval(interval);
-        } catch (e) {
-        }
+        } catch (e) {}
         try {
             clearInterval(updateInterval);
         } catch (e) {}
         try {
             clearTimeout(serveTimeout);
-        } catch (e) {
-        }
+        } catch (e) {}
     }
 
     init();
