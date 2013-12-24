@@ -35,7 +35,7 @@ var ClientGame = function(sfxModule) {
         ball = createBall(spec.ball);
         stage.addChild(ball);
 
-        paddleTweenDuration = spec.game.updateInterval / 2;
+        paddleTweenDuration = spec.game.updateInterval;
 
         //Player Paddle
         playerPaddle = createPaddle(spec.paddle);
@@ -138,7 +138,7 @@ var ClientGame = function(sfxModule) {
         ball.y = data.ball_y;
         updateTail(ball_speed_x, ball_speed_y);
         playerPaddle.y = data.player1_pos;
-        opponentPaddle.y = data.player2_pos;
+        moveOpponentPaddle(data.player2_pos);
         playerSpeed = data.player1_speed;
         stage.update();
     }
@@ -148,7 +148,7 @@ var ClientGame = function(sfxModule) {
         ball.y = data.ball_y;
         updateTail(-ball_speed_x, ball_speed_y);
         playerPaddle.y = data.player2_pos;
-        opponentPaddle.y = data.player1_pos;
+        moveOpponentPaddle(data.player1_pos);
         playerSpeed = data.player2_speed;
         stage.update();
     }
@@ -186,18 +186,27 @@ var ClientGame = function(sfxModule) {
         playerDirection = null;
     }
 
+    function moveOpponentPaddle(position) {
+        //opponentPaddle.y = position;
+        createjs.Tween.get(opponentPaddle).to({y:position}, paddleTweenDuration,createjs.Ease.linear);
+    }
+
     function movePlayerPaddle() {
         if (keyDown) {
-            if (playerDirection === 'UP') {
-                playerSpeed = Math.max(Math.min(playerSpeed * gameSpec.paddle.acceleration, -gameSpec.paddle.minSpeed), -gameSpec.paddle.maxSpeed);
-            } else if (playerDirection === 'DOWN') {
-                playerSpeed = Math.min(Math.max(playerSpeed * gameSpec.paddle.acceleration, gameSpec.paddle.minSpeed), gameSpec.paddle.maxSpeed);
-            }
+            move();
         } else if (playerSpeed !== 0) {
             slideToAStop();
         }
         // Ensure we never go off either edge.
         playerPaddle.y = Math.max(Math.min(playerPaddle.y + playerSpeed, MAX_PADDLE_Y), 0);
+    }
+
+    function move() {
+        if (playerDirection === 'UP') {
+            playerSpeed = Math.max(Math.min(playerSpeed * gameSpec.paddle.acceleration, -gameSpec.paddle.minSpeed), -gameSpec.paddle.maxSpeed);
+        } else if (playerDirection === 'DOWN') {
+            playerSpeed = Math.min(Math.max(playerSpeed * gameSpec.paddle.acceleration, gameSpec.paddle.minSpeed), gameSpec.paddle.maxSpeed);
+        }
     }
 
     function slideToAStop() {

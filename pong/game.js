@@ -27,7 +27,6 @@ exports.createGame = function (player1, player2, spec) {
         clearTimers();
         positionPaddles();
         updateClients();
-        //Solves jump at the begining!
         interval = setInterval(onEnterFrame, enterFrameInterval); // update frequency = millis in a sec / fps
         setTimeout(serveBall, spec.game.serveDelay);
     }
