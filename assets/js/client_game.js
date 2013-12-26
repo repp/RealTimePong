@@ -206,7 +206,7 @@ var ClientGame = function(sfxModule) {
 
     function movePlayerPaddle() {
         if (keyDown) {
-            move();
+           // move();
         } else if (playerSpeed !== 0) {
             //slideToAStop();
         }
