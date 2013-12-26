@@ -6,12 +6,10 @@ exports.createBall = function (gameSpec) {
         START_Y = (gameSpec.field.height - diameter) / 2;
 
     function randomServe() {
-//        var direction = Math.random() > 0.5 ? 1 : -1;
-//        this.speedX = direction * spec.minServeSpeed + (spec.maxServeSpeed - spec.minServeSpeed) * Math.random();
-//        var maxSpeedY = (this.speedX * (gameSpec.field.height / 2)) / (gameSpec.field.width / 2);
-//        this.speedY = -maxSpeedY + maxSpeedY * 2 * Math.random();
-        this.speedX = 0;
-        this.speedY = 1;
+        var direction = Math.random() > 0.5 ? 1 : -1;
+        this.speedX = direction * spec.minServeSpeed + (spec.maxServeSpeed - spec.minServeSpeed) * Math.random();
+        var maxSpeedY = (this.speedX * (gameSpec.field.height / 2)) / (gameSpec.field.width / 2);
+        this.speedY = -maxSpeedY + maxSpeedY * 2 * Math.random();
     }
 
     function onEnterFrame() {

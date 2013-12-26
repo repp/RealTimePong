@@ -186,9 +186,22 @@ var ClientGame = function(sfxModule) {
         playerDirection = null;
     }
 
-    function moveOpponentPaddle(position) {
-        //opponentPaddle.y = position;
-        createjs.Tween.get(opponentPaddle).to({y:position}, paddleTweenDuration,createjs.Ease.linear);
+    function startSmoothing(fps) {
+        var rounded = Math.round(1000/fps);
+        smoothingInterval = setInterval(smooth, rounded);
+    }
+
+    function smooth() {
+        moveBall();
+        movePlayerPaddle();
+        checkForCollisions();
+        stage.update();
+    }
+
+    function stopSmoothing() {
+        try {
+            clearInterval(smoothingInterval);
+        } catch (e) { }
     }
 
     function movePlayerPaddle() {
@@ -214,6 +227,44 @@ var ClientGame = function(sfxModule) {
         if (Math.abs(playerSpeed) < 0.25) playerSpeed = 0;
     }
 
+    function moveOpponentPaddle(position) {
+        createjs.Tween.get(opponentPaddle).to({y:position}, paddleTweenDuration,createjs.Ease.linear);
+    }
+
+    function moveBall() {
+        if(isFirstPlayer) {
+            ball.x += ball_speed_x;
+        } else {
+            ball.x -= ball_speed_x;
+        }
+        ball.y += ball_speed_y;
+    }
+
+    function checkForCollisions() {
+        if(ball.y + gameSpec.ball.diameter > gameSpec.field.height || ball.y - gameSpec.ball.diameter < 0) {
+            ball_speed_y = -ball_speed_y;
+        }
+        if(hasCollidedWith(playerPaddle)) {
+            bounceOff(playerPaddle);
+        }
+        if(hasCollidedWith(opponentPaddle)) {
+            bounceOff(opponentPaddle);
+        }
+    }
+
+    function hasCollidedWith(paddle) {
+        var diameter = gameSpec.ball.diameter;
+        var paddleWidth = gameSpec.paddle.width;
+        var paddleHeight = gameSpec.paddle.height;
+        return (ball.x + diameter > paddle.x && ball.x < paddle.x + paddleWidth && ball.y + diameter > paddle.y && ball.y < paddle.y + paddleHeight);
+    }
+
+    function bounceOff(paddle) {
+        var diameter = gameSpec.ball.diameter;
+        ball.x = paddle.x + (paddle.x === gameSpec.field.rightPaddleX ? -diameter : gameSpec.paddle.width + diameter);
+        ball_speed_x = -ball_speed_x;
+    }
+
     function destroy() {
         stopSmoothing();
         if(stage !== null) {
@@ -224,28 +275,6 @@ var ClientGame = function(sfxModule) {
             ball = null;
             stage = null;
         }
-    }
-
-    function startSmoothing(fps) {
-        var rounded = Math.round(1000/fps);
-        smoothingInterval = setInterval(smooth, rounded);
-    }
-
-    function smooth() {
-        if(isFirstPlayer) {
-            ball.x += ball_speed_x;
-        } else {
-            ball.x -= ball_speed_x;
-        }
-        ball.y += ball_speed_y;
-        movePlayerPaddle();
-        stage.update();
-    }
-
-    function stopSmoothing() {
-        try {
-            clearInterval(smoothingInterval);
-        } catch (e) { }
     }
 
     return {
