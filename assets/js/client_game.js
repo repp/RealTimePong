@@ -208,7 +208,7 @@ var ClientGame = function(sfxModule) {
         if (keyDown) {
             move();
         } else if (playerSpeed !== 0) {
-            slideToAStop();
+            //slideToAStop();
         }
         // Ensure we never go off either edge.
         playerPaddle.y = Math.max(Math.min(playerPaddle.y + playerSpeed, MAX_PADDLE_Y), 0);
