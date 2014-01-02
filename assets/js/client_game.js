@@ -125,6 +125,10 @@ var ClientGame = function(sfxModule) {
         }
     }
 
+    function fixDrift(data) {
+        playerPaddle.y = data.y;
+    }
+
     function ballChangedDirections(new_x_speed, new_y_speed) {
         return Math.abs(new_x_speed + ball_speed_x) < Math.abs(new_x_speed) || Math.abs(new_y_speed + ball_speed_y) < Math.abs(new_y_speed);
     }
@@ -137,7 +141,6 @@ var ClientGame = function(sfxModule) {
         ball.x = data.ball_x;
         ball.y = data.ball_y;
         updateTail(ball_speed_x, ball_speed_y);
-        playerPaddle.y = data.player1_pos;
         moveOpponentPaddle(data.player2_pos);
         playerSpeed = data.player1_speed;
         stage.update();
@@ -147,7 +150,6 @@ var ClientGame = function(sfxModule) {
         ball.x = 800 - data.ball_x;
         ball.y = data.ball_y;
         updateTail(-ball_speed_x, ball_speed_y);
-        playerPaddle.y = data.player2_pos;
         moveOpponentPaddle(data.player1_pos);
         playerSpeed = data.player2_speed;
         stage.update();
@@ -193,7 +195,7 @@ var ClientGame = function(sfxModule) {
 
     function smooth() {
         moveBall();
-        //movePlayerPaddle();
+        movePlayerPaddle();
         checkForCollisions();
         stage.update();
     }
@@ -204,28 +206,28 @@ var ClientGame = function(sfxModule) {
         } catch (e) { }
     }
 
-//    function movePlayerPaddle() {
-//        if (keyDown) {
-//           // move();
-//        } else if (playerSpeed !== 0) {
-//            //slideToAStop();
-//        }
-//        // Ensure we never go off either edge.
-//        playerPaddle.y = Math.max(Math.min(playerPaddle.y + playerSpeed, MAX_PADDLE_Y), 0);
-//    }
-//
-//    function move() {
-//        if (playerDirection === 'UP') {
-//            playerSpeed = Math.max(Math.min(playerSpeed * gameSpec.paddle.acceleration, -gameSpec.paddle.minSpeed), -gameSpec.paddle.maxSpeed);
-//        } else if (playerDirection === 'DOWN') {
-//            playerSpeed = Math.min(Math.max(playerSpeed * gameSpec.paddle.acceleration, gameSpec.paddle.minSpeed), gameSpec.paddle.maxSpeed);
-//        }
-//    }
-//
-//    function slideToAStop() {
-//        playerSpeed = playerSpeed * gameSpec.paddle.slideFriction;
-//        if (Math.abs(playerSpeed) < 0.25) playerSpeed = 0;
-//    }
+    function movePlayerPaddle() {
+        if (keyDown) {
+           move();
+        } else if (playerSpeed !== 0) {
+           slideToAStop();
+        }
+        // Ensure we never go off either edge.
+        playerPaddle.y = Math.max(Math.min(playerPaddle.y + playerSpeed, MAX_PADDLE_Y), 0);
+    }
+
+    function move() {
+        if (playerDirection === 'UP') {
+            playerSpeed = Math.max(Math.min(playerSpeed * gameSpec.paddle.acceleration, -gameSpec.paddle.minSpeed), -gameSpec.paddle.maxSpeed);
+        } else if (playerDirection === 'DOWN') {
+            playerSpeed = Math.min(Math.max(playerSpeed * gameSpec.paddle.acceleration, gameSpec.paddle.minSpeed), gameSpec.paddle.maxSpeed);
+        }
+    }
+
+    function slideToAStop() {
+        playerSpeed = playerSpeed * gameSpec.paddle.slideFriction;
+        if (Math.abs(playerSpeed) < 0.25) playerSpeed = 0;
+    }
 
     function moveOpponentPaddle(position) {
         createjs.Tween.get(opponentPaddle).to({y:position}, paddleTweenDuration,createjs.Ease.linear);
@@ -284,6 +286,7 @@ var ClientGame = function(sfxModule) {
         onKeyUp: onKeyUp,
         onScore: onScore,
         updatePositions: updatePositions,
+        fixDrift: fixDrift,
         destroy: destroy
     };
 

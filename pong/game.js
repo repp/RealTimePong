@@ -27,6 +27,7 @@ exports.createGame = function (player1, player2, spec) {
         clearTimers();
         positionPaddles();
         updateClients();
+        fixDrift();
         interval = setInterval(onEnterFrame, enterFrameInterval); // update frequency = millis in a sec / fps
         setTimeout(serveBall, spec.game.serveDelay);
     }
@@ -91,6 +92,11 @@ exports.createGame = function (player1, player2, spec) {
         };
         player1.updateClient(updateData);
         player2.updateClient(updateData);
+    }
+
+    function fixDrift() {
+        player1.fixDrift();
+        player2.fixDrift();
     }
 
     function updateScores() {

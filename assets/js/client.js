@@ -62,6 +62,7 @@ var pongClient = (function() {
         document.addEventListener('keyup', keyUp);
 
         socket.on('update_positions', game.updatePositions);
+        socket.on('fix_drift', game.fixDrift);
         socket.on('update_scores', updateScores);
         socket.on('game_over', onGameOver);
         socket.emit('game_setup');
@@ -118,6 +119,7 @@ var pongClient = (function() {
         this.document.removeEventListener('keydown', keyDown);
         this.document.removeEventListener('keyup', keyUp);
         socket.removeListener('update_positions', game.updatePositions);
+        socket.removeListener('fix_drift', game.fixDrift);
         socket.removeListener('update_scores', updateScores);
     }
 

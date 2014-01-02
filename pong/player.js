@@ -119,6 +119,10 @@ exports.createPlayer = function (socket, name, gameSpec) {
         socket.emit('update_positions', data);
     }
 
+    function fixDrift() {
+        socket.emit('fix_drift', {y: paddle.y});
+    }
+
     function updateScores(data) {
         socket.emit('update_scores', data);
     }
@@ -132,6 +136,7 @@ exports.createPlayer = function (socket, name, gameSpec) {
         addKeyListeners:addKeyListeners,
         playAgain:playAgain,
         updateClient:updateClient,
+        fixDrift: fixDrift,
         updateScores:updateScores,
         reset:reset,
         destroyGame:destroyGame,
